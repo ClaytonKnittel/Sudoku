@@ -1,0 +1,21 @@
+{
+  "name": "sudoku",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/standalone": "^7.10.5",
+    "babel-preset-react": "^6.24.1",
+    "fs": "0.0.1-security",
+    "http": "0.0.1-security",
+    "mime": "^2.4.6",
+    "path": "^0.12.7",
+    "url": "^0.11.0"
+  }
+}
