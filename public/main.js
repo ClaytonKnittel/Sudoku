@@ -17,21 +17,21 @@ function Tile(props) {
 function Box(props) {
     return (<div className='box'>
         <div className='box-row'>
-            <Tile val='1' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
-            <Tile val='2' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
-            <Tile val='3' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
+            <Tile val='0' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
+            <Tile val='0' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
+            <Tile val='0' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
         </div>
 
         <div className='box-row'>
-            <Tile val='4' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
-            <Tile val='5' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
-            <Tile val='6' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
+            <Tile val='0' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
+            <Tile val='0' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
+            <Tile val='0' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
         </div>
 
         <div className='box-row'>
-            <Tile val='7' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
-            <Tile val='8' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
-            <Tile val='9' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
+            <Tile val='0' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
+            <Tile val='0' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
+            <Tile val='0' changeCB={props.changeCB} setChangeCB={props.setChangeCB} ></Tile>
         </div>
     </div>);
 }
@@ -51,10 +51,20 @@ function Sudoku() {
         });
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === "1") {
-                console.log('to 1');
-                setVal(1);
+
+            if (e.key === "Backspace") {
+                setVal(0);
+                return;
             }
+
+            let num = parseInt(e.key);
+            if (Number.isNaN(num) || !Number.isInteger(num)) {
+                return;
+            }
+            if (num < 1 || num > 9) {
+                return;
+            }
+            setVal(num);
         });
     }, []);
 

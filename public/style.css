@@ -6,16 +6,25 @@ body {
 #main {
     position: absolute;
 
-    width: 100vw;
-    height: 100vh;
+    top: 5vh;
+    left: 5vw;
+
+    width: 90vw;
+    height: 70vh;
+}
+
+#ctrls {
+    position: absolute;
+
+    top: 80vh;
+    left: 0vw;
 }
 
 .board {
-    width: 90%;
-    margin-left: 5%;
-    margin-right: 5%;
+    width: min(81vw, 70vh);
+    margin: 0 auto;
 
-    height: 100%;
+    height: min(81vw, 70vh);
 
     border-right: 2px solid black;
     border-bottom: 2px solid black;
@@ -36,6 +45,10 @@ body {
     border-top: 2px solid black;
     border-bottom: 1px solid black;
     border-right: 1px solid black;
+
+    /* weird chrome bug, otherwise if bottom row of box is
+       empty, shifts all other boxes on same row down */
+    vertical-align: top;
 }
 
 .box-row {
@@ -58,7 +71,7 @@ body {
 }
 
 .empty {
-    vertical-align:top;
+    vertical-align: top;
 }
 
 
