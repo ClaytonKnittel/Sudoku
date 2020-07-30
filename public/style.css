@@ -1,0 +1,85 @@
+
+body {
+    margin: 0;
+}
+
+#main {
+    position: absolute;
+
+    width: 100vw;
+    height: 100vh;
+}
+
+.board {
+    width: 90%;
+    margin-left: 5%;
+    margin-right: 5%;
+
+    height: 100%;
+
+    border-right: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+.board-row {
+    width: 100%;
+    height: 33.333%;
+}
+
+.box {
+    position: relative;
+    display: inline-block;
+    width: calc(33.333% - 3px);
+    height: calc(100% - 3px);
+
+    border-left: 2px solid black;
+    border-top: 2px solid black;
+    border-bottom: 1px solid black;
+    border-right: 1px solid black;
+}
+
+.box-row {
+    width: 100%;
+    height: 33.333%;
+}
+
+.tile {
+    position: relative;
+    display: inline-block;
+    width: calc(33.333% - 1px);
+    height: calc(100% - 1px);
+
+    border-left: 1px solid black;
+    border-top: 1px solid black;
+}
+
+.tile:hover {
+    cursor: pointer;
+}
+
+.empty {
+    vertical-align:top;
+}
+
+
+.number_cell {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.given {
+    font-size: 3em;
+    color: #000000;
+}
+
+.guess {
+    font-size: 3em;
+    color: #555555;
+}
+
+.selected {
+    background-color: #868686;
+}
