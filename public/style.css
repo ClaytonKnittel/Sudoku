@@ -10,15 +10,38 @@ body {
     left: 5vw;
 
     width: 90vw;
-    height: 70vh;
+    height: 90vh;
 }
 
-#ctrls {
+.ctrls {
     position: absolute;
 
-    top: 80vh;
-    left: 0vw;
+    top: 75vh;
+    left: 0;
+    width: 90vw;
+    height: 15vh;
 }
+
+.modeButton {
+    width: calc(33.333% - 20px);
+    height: calc(100% - 20px);
+
+    margin: 8px;
+    border: 2px solid black;
+    border-radius: 4px;
+
+    display: inline-block;
+    text-align: center;
+
+    transition: background-color .13s linear;
+    background-color: #ffffff;
+}
+
+.selectedMode {
+    transition: background-color .13s linear;
+    background-color: #b4b4b4;
+}
+
 
 .board {
     width: min(81vw, 70vh);
@@ -94,5 +117,17 @@ body {
 }
 
 .selected {
+    transition: background-color .13s linear;
     background-color: #868686;
+}
+
+
+.pencils {
+    font-size: 1em;
+    color: red;
+}
+
+.possibles {
+    font-size: 1em;
+    color: green;
 }
