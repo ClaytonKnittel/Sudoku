@@ -2,11 +2,76 @@
 
 // global var, whatever
 let g_key_callback = () => {};
+let g_keyup_callback = () => {};
+let g_click_outside = () => {};
 
 
 function Pencils(props) {
+    const styles4 = [
+        {top: 0, left: 0},
+        {top: 0, right: 0},
+        {bottom: 0, left: 0},
+        {bottom: 0, right: 0}
+    ];
+    const styles6 = [
+        {top: 0, left: 0},
+        {top: 0, left: "50%", transform: "translateX(-50%)"},
+        {top: 0, right: 0},
+        {bottom: 0, left: 0},
+        {bottom: 0, left: "50%", transform: "translateX(-50%)"},
+        {bottom: 0, right: 0}
+    ];
+    const styles8 = [
+        {top: 0, left: 0},
+        {top: 0, left: "33.333%", transform: "translateX(-50%)"},
+        {top: 0, left: "66.666%", transform: "translateX(-50%)"},
+        {top: 0, right: 0},
+        {bottom: 0, left: 0},
+        {bottom: 0, left: "33.333%", transform: "translateX(-50%)"},
+        {bottom: 0, left: "66.666%", transform: "translateX(-50%)"},
+        {bottom: 0, right: 0}
+    ];
+    const styles9 = [
+        {top: 0, left: 0},
+        {top: 0, left: "25%", transform: "translateX(-50%)"},
+        {top: 0, left: "50%", transform: "translateX(-50%)"},
+        {top: 0, left: "75%", transform: "translateX(-50%)"},
+        {top: 0, right: 0},
+        {bottom: 0, left: 0},
+        {bottom: 0, left: "33.333%", transform: "translateX(-50%)"},
+        {bottom: 0, left: "66.666%", transform: "translateX(-50%)"},
+        {bottom: 0, right: 0}
+    ];
+
+    let count = 0;
+    for (let i = 0; i < 9; i++) {
+        count += ((props.bits >> i) & 1);
+    }
+
+    let styles;
+    if (count <= 4) {
+        styles = styles4;
+    }
+    else if (count <= 6) {
+        styles = styles6;
+    }
+    else if (count <= 8) {
+        styles = styles8;
+    }
+    else {
+        styles = styles9;
+    }
+
+    let lis = [];
+    let n = 0;
+    for (let i = 0; i < 9; i++) {
+        if (((props.bits >> i) & 1) === 1) {
+            lis.push(<span key={i} className="pencil" style={styles[n]}>{i + 1}</span>);
+            n++;
+        }
+    }
     return (<div className="pencils">
-        {props.bits}
+        {lis}
     </div>);
 }
 
@@ -37,6 +102,14 @@ function Tile(props) {
 
     let empty = (val == 0) && (pencils == 0) && (possibles == 0);
 
+    let newSetVal = (newVal) => {
+        if (val == newVal) {
+            setVal(0);
+        }
+        else {
+            setVal(newVal);
+        }
+    };
     let setPenc = (val) => {
         setPencils(pencils ^ (1 << (val - 1)));
     };
@@ -51,14 +124,14 @@ function Tile(props) {
                 if (val != 0) {
                     setGiven(true);
                 }
-            }, setVal, setPenc, setPoss);
+            }, newSetVal, setPenc, setPoss);
         }
         else {
             if (given) {
                 props.setChangeCB(props.idx, () => {}, () => {}, () => {}, () => {});
             }
             else {
-                props.setChangeCB(props.idx, () => {}, setVal, setPenc, setPoss);
+                props.setChangeCB(props.idx, () => {}, newSetVal, setPenc, setPoss);
             }
         }
     }
@@ -101,11 +174,12 @@ function Box(props) {
 
 function Sudoku(props) {
     let selectedMap = React.useRef(new Set());
-    let setVal = React.useRef(() => {});
-    let setPencil = React.useRef(() => {});
-    let setPossible = React.useRef(() => {});
+    let setVal = React.useRef([]);
+    let setPencil = React.useRef([]);
+    let setPossible = React.useRef([]);
     let [garb, setGarb] = React.useState(0);
     let setGivenList = React.useRef(new Map());
+    let shiftHeld = React.useRef(false);
 
     let selected = selectedMap.current;
 
@@ -113,10 +187,16 @@ function Sudoku(props) {
         if (props.state == 0) {
             setGivenList.current.set(idx, setGivenFn);
         }
-        console.log(setPencil.current);
-        setVal.current = setValFn;
-        setPencil.current = setPencilFn;
-        setPossible.current = setPossibleFn;
+        if (shiftHeld.current) {
+            setVal.current.push(setValFn);
+            setPencil.current.push(setPencilFn);
+            setPossible.current.push(setPossibleFn);
+        }
+        else {
+            setVal.current = [setValFn];
+            setPencil.current = [setPencilFn];
+            setPossible.current = [setPossibleFn];
+        }
     };
 
     React.useEffect(() => {
@@ -130,7 +210,9 @@ function Sudoku(props) {
 
     let selectTile = (idx) => {
         if (!(idx in selected)) {
-            selected.clear();
+            if (!shiftHeld.current) {
+                selected.clear();
+            }
             selected.add(idx);
             // force update
             setGarb(!garb);
@@ -143,6 +225,9 @@ function Sudoku(props) {
             setVal.current(0);
             return;
         }
+        if (e.key === "Shift") {
+            shiftHeld.current = true;
+        }
 
         let num = parseInt(e.key);
         if (Number.isNaN(num) || !Number.isInteger(num)) {
@@ -152,28 +237,51 @@ function Sudoku(props) {
             return;
         }
         if (props.state === 0) {
-            setVal.current(num);
+            setVal.current.forEach((fn) => fn(num));
         }
         else {
             switch (props.mode) {
                 case 0:
-                    setVal.current(num);
+                    setVal.current.forEach((fn) => fn(num));
                     break;
                 case 1:
-                    setPencil.current(num);
+                    setPencil.current.forEach((fn) => fn(num));
                     break;
                 case 2:
-                    setPossible.current(num);
+                    setPossible.current.forEach((fn) => fn(num));
                     break;
             }
         }
     };
 
+    let new_keyup_cb = (e) => {
+
+        if (e.key === "Shift") {
+            shiftHeld.current = false;
+        }
+    };
+
+    let click_outside = (e) => {
+        if (!document.getElementById('board').contains(e.target)){
+            selected.clear();
+            // force update
+            setGarb(!garb);
+        }
+    }
+
     document.removeEventListener('keydown', g_key_callback);
     document.addEventListener('keydown', new_key_cb);
     g_key_callback = new_key_cb;
 
-    return (<div className='board'>
+    document.removeEventListener('keyup', g_keyup_callback);
+    document.addEventListener('keyup', new_keyup_cb);
+    g_keyup_callback = new_keyup_cb;
+
+    window.removeEventListener('click', g_click_outside);
+    window.addEventListener('click', click_outside);
+    g_click_outside = click_outside;
+
+    return (<div id='board' className='board'>
         <div className='board-row'>
             <Box state={props.state} idx_off={0}  selected={selected} setSelected={selectTile} setChangeCB={modCCB} />
             <Box state={props.state} idx_off={9}  selected={selected} setSelected={selectTile} setChangeCB={modCCB} />
@@ -234,6 +342,13 @@ function Ctrl(props) {
 }
 
 
+function ClearButton() {
+    return (<div className="clearButton">
+        clear
+    </div>);
+}
+
+
 function Screen() {
     // game create/game play
     let [state, setState] = React.useState(0);
@@ -246,7 +361,10 @@ function Screen() {
     };
 
     return (<div>
-        <Sudoku state={state} mode={mode} />
+        <div className="sudokuContainer">
+            <Sudoku state={state} mode={mode} />
+        </div>
+        <ClearButton />
         <Ctrl state={state} beginGame={beginGame} mode={mode} setMode={setMode}/>
     </div>);
 }
