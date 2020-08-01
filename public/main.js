@@ -471,10 +471,6 @@ function Screen() {
         console.log("state", newState);
     };
 
-    let beginGame = () => {
-        changeState(1);
-    };
-
     React.useEffect(() => {
         socketio.on("update", (data) => {
             setGameState(data.gameState);
@@ -501,6 +497,11 @@ function Screen() {
             state: newState
         });
     }
+
+
+    let beginGame = () => {
+        changeState(1);
+    };
 
     React.useEffect(() => {
         if (state === 1) {
