@@ -484,6 +484,7 @@ function checkState(gameState) {
             if (val == 0) {
                 return NOT_DONE;
             }
+            console.log(" ", val);
             m |= (1 << (val - 1));
         }
         if (m != 511) {
