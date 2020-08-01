@@ -461,6 +461,7 @@ function idx(r, c) {
 }
 
 function checkState(gameState) {
+    console.log(gameState);
     // check rows
     for (let r = 0; r < 9; r++) {
         let m = 0;
