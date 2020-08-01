@@ -457,7 +457,9 @@ const NOT_RIGHT = 2;
 const RIGHT = 3;
 
 function idx(r, c) {
-    return r * 9 + c;
+    let b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+    let i = (r % 3) * 3 + (c % 3);
+    return b * 9 + i;
 }
 
 function checkState(gameState) {
