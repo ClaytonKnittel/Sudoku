@@ -89,51 +89,58 @@ function Possibles(props) {
 
 
 function Tile(props) {
+    let state = props.gameState[props.idx];
+    let val = state.val;
+    let pencils = state.pencils;
+    let possibles = state.possibles;
+    let given = state.given;
+
+    /*
     let [val, setVal] = React.useState(parseInt(props.val));
     // true if this tile is a given digit (cannot modify it, is darker than the rest)
     let [given, setGiven] = React.useState(false);
 
     // use bitfields for the 9 numbers
     let [pencils, setPencils] = React.useState(0);
-    let [possibles, setPossibles] = React.useState(0);
+    let [possibles, setPossibles] = React.useState(0);*/
 
     let selected = props.selected;
     let setSelected = props.setSelected;
 
     let empty = (val == 0) && (pencils == 0) && (possibles == 0);
 
-    let newSetVal = (newVal) => {
-        if (val == newVal) {
-            setVal(0);
-        }
-        else {
-            setVal(newVal);
-        }
-    };
-    let setPenc = (val) => {
-        setPencils(pencils ^ (1 << (val - 1)));
-    };
-    let setPoss = (val) => {
-        setPossibles(possibles ^ (1 << (val - 1)));
-    };
+    // let newSetVal = (newVal) => {
+    //     if (val == newVal) {
+    //         setVal(0);
+    //     }
+    //     else {
+    //         setVal(newVal);
+    //     }
+    // };
+    // let setPenc = (val) => {
+    //     setPencils(pencils ^ (1 << (val - 1)));
+    // };
+    // let setPoss = (val) => {
+    //     setPossibles(possibles ^ (1 << (val - 1)));
+    // };
 
     let isSelected = selected.has(props.idx);
     if (isSelected) {
-        if (props.state == 0) {
-            props.setChangeCB(props.idx, () => {
-                if (val != 0) {
-                    setGiven(true);
-                }
-            }, newSetVal, setPenc, setPoss);
-        }
-        else {
-            if (given) {
-                props.setChangeCB(props.idx, () => {}, () => {}, () => {}, () => {});
-            }
-            else {
-                props.setChangeCB(props.idx, () => {}, newSetVal, setPenc, setPoss);
-            }
-        }
+        // if (props.state == 0) {
+        //     props.setChangeCB(props.idx, () => {
+        //         if (val != 0) {
+        //             setGiven(true);
+        //         }
+        //     }, newSetVal, setPenc, setPoss);
+        // }
+        // else {
+        //     if (given) {
+        //         props.setChangeCB(props.idx, () => {}, () => {}, () => {}, () => {});
+        //     }
+        //     else {
+        //         props.setChangeCB(props.idx, () => {}, newSetVal, setPenc, setPoss);
+        //     }
+        // }
     }
 
     return (
@@ -153,57 +160,62 @@ function Box(props) {
     let sel = props.selected;
     return (<div className='box'>
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 0} selected={sel} setSelected={props.setSelected} setChangeCB={props.setChangeCB} ></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 1} selected={sel} setSelected={props.setSelected} setChangeCB={props.setChangeCB} ></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 2} selected={sel} setSelected={props.setSelected} setChangeCB={props.setChangeCB} ></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 0} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 1} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 2} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
         </div>
 
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 3} selected={sel} setSelected={props.setSelected} setChangeCB={props.setChangeCB} ></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 4} selected={sel} setSelected={props.setSelected} setChangeCB={props.setChangeCB} ></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 5} selected={sel} setSelected={props.setSelected} setChangeCB={props.setChangeCB} ></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 3} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 4} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 5} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
         </div>
 
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 6} selected={sel} setSelected={props.setSelected} setChangeCB={props.setChangeCB} ></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 7} selected={sel} setSelected={props.setSelected} setChangeCB={props.setChangeCB} ></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 8} selected={sel} setSelected={props.setSelected} setChangeCB={props.setChangeCB} ></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 6} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 7} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 8} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
         </div>
     </div>);
 }
 
+function initGameState() {
+    let arr = [];
+    for (let i = 0; i < 81; i++) {
+        arr.push({
+            val: 0,
+            pencils: 0,
+            possibles: 0,
+            given: false
+        });
+    }
+    return arr;
+}
+
+function copyGameState(oldState) {
+    let newState = [];
+    oldState.forEach((tileState) => {
+        newState.push({...tileState});
+    })
+    return newState;
+}
+
 function Sudoku(props) {
     let selectedMap = React.useRef(new Set());
-    let setVal = React.useRef([]);
-    let setPencil = React.useRef([]);
-    let setPossible = React.useRef([]);
     let [garb, setGarb] = React.useState(0);
-    let setGivenList = React.useRef(new Map());
     let shiftHeld = React.useRef(false);
 
-    let selected = selectedMap.current;
+    let [gameState, setGameState] = React.useState(initGameState());
 
-    let modCCB = (idx, setGivenFn, setValFn, setPencilFn, setPossibleFn) => {
-        if (props.state == 0) {
-            setGivenList.current.set(idx, setGivenFn);
-        }
-        if (shiftHeld.current) {
-            setVal.current.push(setValFn);
-            setPencil.current.push(setPencilFn);
-            setPossible.current.push(setPossibleFn);
-        }
-        else {
-            setVal.current = [setValFn];
-            setPencil.current = [setPencilFn];
-            setPossible.current = [setPossibleFn];
-        }
-    };
+    let selected = selectedMap.current;
 
     React.useEffect(() => {
         if (props.state === 1) {
             // go through setGivenList and make all tiles givens
-            setGivenList.current.forEach((setGiven, idx) => {
-                setGiven();
+            gameState.forEach((tileState) => {
+                if (tileState.val != 0) {
+                    tileState.given = true;
+                }
             });
         }
     }, [props.state]);
@@ -220,9 +232,15 @@ function Sudoku(props) {
     };
 
     let new_key_cb = (e) => {
+        let newState = copyGameState(gameState);
 
         if (e.key === "Backspace") {
-            setVal.current(0);
+            selected.forEach((idx) => {
+                if (!newState[idx].given) {
+                    newState[idx].val = 0;
+                }
+            });
+            setGameState(newState);
             return;
         }
         if (e.key === "Shift") {
@@ -237,20 +255,59 @@ function Sudoku(props) {
             return;
         }
         if (props.state === 0) {
-            setVal.current.forEach((fn) => fn(num));
+            selected.forEach((idx) => {
+                newState[idx].val = num;
+            });
+            setGameState(newState);
         }
         else {
+            let all_on;
             switch (props.mode) {
                 case 0:
-                    setVal.current.forEach((fn) => fn(num));
+                    selected.forEach((idx) => {
+                        if (!newState[idx].given) {
+                            newState[idx].val = num;
+                        }
+                    });
                     break;
                 case 1:
-                    setPencil.current.forEach((fn) => fn(num));
+                    all_on = true;
+                    selected.forEach((idx) => {
+                        if (!newState[idx].given) {
+                            all_on = all_on && ((newState[idx].pencils & (1 << (num - 1))) != 0);
+                        }
+                    });
+                    selected.forEach((idx) => {
+                        if (!newState[idx].given) {
+                            if (all_on) {
+                                newState[idx].pencils &= ~(1 << (num - 1));
+                            }
+                            else {
+                                newState[idx].pencils |= (1 << (num - 1));
+                            }
+                        }
+                    });
                     break;
                 case 2:
-                    setPossible.current.forEach((fn) => fn(num));
+                    all_on = true;
+                    selected.forEach((idx) => {
+                        if (!newState[idx].given) {
+                            all_on = all_on && ((newState[idx].possibles & (1 << (num - 1))) != 0);
+                        }
+                    });
+                    selected.forEach((idx) => {
+                        if (!newState[idx].given) {
+                            if (all_on) {
+                                newState[idx].possibles &= ~(1 << (num - 1));
+                            }
+                            else {
+                                newState[idx].possibles |= (1 << (num - 1));
+                            }
+                        }
+                    });
                     break;
             }
+            setGameState(newState);
         }
     };
 
@@ -283,21 +340,21 @@ function Sudoku(props) {
 
     return (<div id='board' className='board'>
         <div className='board-row'>
-            <Box state={props.state} idx_off={0}  selected={selected} setSelected={selectTile} setChangeCB={modCCB} />
-            <Box state={props.state} idx_off={9}  selected={selected} setSelected={selectTile} setChangeCB={modCCB} />
-            <Box state={props.state} idx_off={18} selected={selected} setSelected={selectTile} setChangeCB={modCCB} />
+            <Box state={props.state} idx_off={0}  gameState={gameState} selected={selected} setSelected={selectTile} />
+            <Box state={props.state} idx_off={9}  gameState={gameState} selected={selected} setSelected={selectTile} />
+            <Box state={props.state} idx_off={18} gameState={gameState} selected={selected} setSelected={selectTile} />
         </div>
 
         <div className='board-row'>
-            <Box state={props.state} idx_off={27} selected={selected} setSelected={selectTile} setChangeCB={modCCB} />
-            <Box state={props.state} idx_off={36} selected={selected} setSelected={selectTile} setChangeCB={modCCB} />
-            <Box state={props.state} idx_off={45} selected={selected} setSelected={selectTile} setChangeCB={modCCB} />
+            <Box state={props.state} idx_off={27} gameState={gameState} selected={selected} setSelected={selectTile} />
+            <Box state={props.state} idx_off={36} gameState={gameState} selected={selected} setSelected={selectTile} />
+            <Box state={props.state} idx_off={45} gameState={gameState} selected={selected} setSelected={selectTile} />
         </div>
 
         <div className='board-row'>
-            <Box state={props.state} idx_off={54} selected={selected} setSelected={selectTile} setChangeCB={modCCB} />
-            <Box state={props.state} idx_off={63} selected={selected} setSelected={selectTile} setChangeCB={modCCB} />
-            <Box state={props.state} idx_off={72} selected={selected} setSelected={selectTile} setChangeCB={modCCB} />
+            <Box state={props.state} idx_off={54} gameState={gameState} selected={selected} setSelected={selectTile} />
+            <Box state={props.state} idx_off={63} gameState={gameState} selected={selected} setSelected={selectTile} />
+            <Box state={props.state} idx_off={72} gameState={gameState} selected={selected} setSelected={selectTile} />
         </div>
     </div>);
 }
