@@ -95,7 +95,8 @@ io.sockets.on("connection", function(socket) {
 
 	socket.on("fetch", () => {
 		socket.emit("fetch_response", {
-			gameState: g_current_state
+			gameState: g_current_state,
+			state: g_mode
 		});
 	});
 
