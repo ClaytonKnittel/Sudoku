@@ -7,6 +7,21 @@ let g_key_callback = () => {};
 let g_keyup_callback = () => {};
 let g_click_outside = () => {};
 
+const user_colors = [
+    {
+        color: "#ff0000"
+    },
+    {
+        color: "#00ff00"
+    },
+    {
+        color: "#0000ff"
+    },
+    {
+        color: "#00ffff"
+    }
+];
+
 
 function Pencils(props) {
     const styles4 = [
@@ -50,6 +65,8 @@ function Pencils(props) {
         count += ((props.bits >> i) & 1);
     }
 
+    let color_style = user_colors[props.color];
+
     let styles;
     if (count <= 4) {
         styles = styles4;
@@ -68,7 +85,7 @@ function Pencils(props) {
     let n = 0;
     for (let i = 0; i < 9; i++) {
         if (((props.bits >> i) & 1) === 1) {
-            lis.push(<span key={i} className="pencil" style={styles[n]}>{i + 1}</span>);
+            lis.push(<span key={i} className="pencil" style={{...color_style, ...styles[n]}}>{i + 1}</span>);
             n++;
         }
     }
@@ -78,10 +95,12 @@ function Pencils(props) {
 }
 
 function Possibles(props) {
+    let color_style = user_colors[props.color];
+
     let lis = [];
     for (let i = 0; i < 9; i++) {
         if (((props.bits >> i) & 1) === 1) {
-            lis.push(<span key={i} className="possible">{i + 1}</span>);
+            lis.push(<span key={i} className="possible" style={color_style}>{i + 1}</span>);
         }
     }
     return (<div className="possibles">
@@ -97,62 +116,26 @@ function Tile(props) {
     let possibles = state.possibles;
     let given = state.given;
 
-    /*
-    let [val, setVal] = React.useState(parseInt(props.val));
-    // true if this tile is a given digit (cannot modify it, is darker than the rest)
-    let [given, setGiven] = React.useState(false);
-
-    // use bitfields for the 9 numbers
-    let [pencils, setPencils] = React.useState(0);
-    let [possibles, setPossibles] = React.useState(0);*/
-
     let selected = props.selected;
     let setSelected = props.setSelected;
 
     let empty = (val == 0) && (pencils == 0) && (possibles == 0);
 
-    // let newSetVal = (newVal) => {
-    //     if (val == newVal) {
-    //         setVal(0);
-    //     }
-    //     else {
-    //         setVal(newVal);
-    //     }
-    // };
-    // let setPenc = (val) => {
-    //     setPencils(pencils ^ (1 << (val - 1)));
-    // };
-    // let setPoss = (val) => {
-    //     setPossibles(possibles ^ (1 << (val - 1)));
-    // };
-
     let isSelected = selected.has(props.idx);
-    if (isSelected) {
-        // if (props.state == 0) {
-        //     props.setChangeCB(props.idx, () => {
-        //         if (val != 0) {
-        //             setGiven(true);
-        //         }
-        //     }, newSetVal, setPenc, setPoss);
-        // }
-        // else {
-        //     if (given) {
-        //         props.setChangeCB(props.idx, () => {}, () => {}, () => {}, () => {});
-        //     }
-        //     else {
-        //         props.setChangeCB(props.idx, () => {}, newSetVal, setPenc, setPoss);
-        //     }
-        // }
-    }
+
+    let color_style = given ? {} : user_colors[state.user_color];
 
     return (
         <span className={`tile${isSelected ? ' selected' : ''}${empty ? ' empty' : ''}`} onClick={() => {
                 setSelected(props.idx);
             }}>
             <div className={`number_cell${empty ? '' : ' nonempty'}${given ? ' given' : (val !== 0 ? ' guess' : '')}`}>
-                {val === 0 ? (pencils !== 0 ? (possibles !== 0 ? <div><Pencils bits={pencils}/><Possibles bits={possibles}/></div> : <Pencils bits={pencils}/>)
-                               : (possibles !== 0 ? <Possibles bits={possibles}/> : <div style={{display: 'none'}}/>))
-                    : val}
+                {val === 0 ? (pencils !== 0 ? (possibles !== 0 ?
+                                <div><Pencils bits={pencils} color={state.user_color}/><Possibles bits={possibles}/></div>
+                                : <Pencils bits={pencils} color={state.user_color}/>)
+                        : (possibles !== 0 ? <Possibles bits={possibles} color={state.user_color}/>
+                                : <div style={{display: 'none'}}/>))
+                : <div style={color_style}>{val}</div>}
             </div>
         </span>);
 }
@@ -261,6 +244,7 @@ function Sudoku(props) {
             }
             selected.forEach((idx) => {
                 newState[idx].val = num;
+                newState[idx].user_color = props.user_color;
             });
             setGameState(newState);
         }
@@ -279,6 +263,7 @@ function Sudoku(props) {
                     selected.forEach((idx) => {
                         if (!newState[idx].given) {
                             newState[idx].val = num;
+                            newState[idx].user_color = props.user_color;
                         }
                     });
                     break;
@@ -293,9 +278,11 @@ function Sudoku(props) {
                         if (!newState[idx].given) {
                             if (all_on) {
                                 newState[idx].pencils &= ~(1 << (num - 1));
+                                newState[idx].user_color = props.user_color;
                             }
                             else {
                                 newState[idx].pencils |= (1 << (num - 1));
+                                newState[idx].user_color = props.user_color;
                             }
                         }
                     });
@@ -311,9 +298,11 @@ function Sudoku(props) {
                         if (!newState[idx].given) {
                             if (all_on) {
                                 newState[idx].possibles &= ~(1 << (num - 1));
+                                newState[idx].user_color = props.user_color;
                             }
                             else {
                                 newState[idx].possibles |= (1 << (num - 1));
+                                newState[idx].user_color = props.user_color;
                             }
                         }
                     });
@@ -538,6 +527,7 @@ function setGivens(gameState) {
     gsc.forEach((tileState) => {
         if (tileState.val != 0) {
             tileState.given = true;
+            tileState.user_color = -1;
         }
     });
     return gsc;
@@ -552,12 +542,12 @@ function Screen() {
 
     let [gameState, setGameState] = React.useState(initGameState());
 
-    let userId = React.useRef(-1);
+    let user_color = React.useRef(-1);
 
     React.useEffect(() => {
         socketio.on("login_response", (data) => {
             let user = data.user;
-            userId.current = user.id;
+            user_color.current = user.color;
             window.localStorage.token = data.token;
         });
         socketio.on("update", (data) => {
@@ -630,7 +620,7 @@ function Screen() {
 
     return (<div>
         <div className="sudokuContainer">
-            <Sudoku gameState={gameState} setGameState={changeGameState} state={state} mode={mode} />
+            <Sudoku gameState={gameState} setGameState={changeGameState} state={state} mode={mode} user_color={user_color.current} />
         </div>
         <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}/>
         <CheckButton gameState={gameState}/>
