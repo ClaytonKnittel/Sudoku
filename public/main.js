@@ -188,7 +188,8 @@ function initGameState() {
             val: 0,
             pencils: 0,
             possibles: 0,
-            given: false
+            given: false,
+            user_color: -1
         });
     }
     return arr;
@@ -531,6 +532,18 @@ function CheckButton({ gameState }) {
 }
 
 
+function setGivens(gameState) {
+    let gsc = copyGameState(gameState);
+    // go through setGivenList and make all tiles givens
+    gsc.forEach((tileState) => {
+        if (tileState.val != 0) {
+            tileState.given = true;
+        }
+    });
+    return gsc;
+}
+
+
 function Screen() {
     // game create/game play
     let [state, setState] = React.useState(0);
@@ -539,67 +552,75 @@ function Screen() {
 
     let [gameState, setGameState] = React.useState(initGameState());
 
-    let changeState = (newState) => {
-        setState(newState);
-        socketio.emit("update", {
-            old_state: gameState,
-            new_state: gameState,
-            state: newState
-        });
-        console.log("state", newState);
-    };
+    let userId = React.useRef(-1);
 
     React.useEffect(() => {
+        socketio.on("login_response", (data) => {
+            let user = data.user;
+            userId.current = user.id;
+            window.localStorage.token = data.token;
+        });
         socketio.on("update", (data) => {
             setGameState(data.gameState);
             setState(data.state);
+            console.log(data.gameState);
         });
         socketio.on("fetch_response", (data) => {
             setGameState(data.gameState);
             setState(data.state);
         });
 
+        let token = window.localStorage.getItem("token");
+        if (token === null) {
+            token = "";
+        }
+        socketio.emit("login", {
+            token: token
+        });
         // fetch current game state
         socketio.emit("fetch", {});
     }, []);
 
     let changeGameState = (newState) => {
         setGameState(newState);
+        let token;
+        if (window.localStorage.getItem("token") === null) {
+            token = "";
+        }
+        else {
+            token = window.localStorage.token;
+        }
         socketio.emit("update", {
             old_state: gameState,
             new_state: newState,
-            state: state
+            state: state,
+            token: token
         });
-        console.log("state", state);
     };
 
     let setBoth = (newState, newGameState) => {
         setState(newState);
         setGameState(newGameState);
+        let token;
+        if (window.localStorage.getItem("token") === null) {
+            token = "";
+        }
+        else {
+            token = window.localStorage.token;
+        }
         socketio.emit("update", {
             old_state: gameState,
             new_state: newGameState,
-            state: newState
+            state: newState,
+            token: token
         });
     }
 
 
     let beginGame = () => {
-        changeState(1);
+        let gsc = setGivens(gameState);
+        setBoth(1, gsc);
     };
-
-    React.useEffect(() => {
-        if (state === 1) {
-            let gsc = copyGameState(gameState);
-            // go through setGivenList and make all tiles givens
-            gsc.forEach((tileState) => {
-                if (tileState.val != 0) {
-                    tileState.given = true;
-                }
-            });
-            changeGameState(gsc);
-        }
-    }, [state]);
 
     React.useEffect(() => {
         if (state == 0) {
