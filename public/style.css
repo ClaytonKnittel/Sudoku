@@ -162,7 +162,7 @@ body {
 
 .guess {
     font-size: 3em;
-    color: #555555;
+    color: #2b268b;
 }
 
 .selected {
@@ -170,17 +170,25 @@ body {
     background-color: #868686;
 }
 
+.selected > .guess {
+    color: #3c35b8;
+}
+
 
 .pencils {
     position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
+    left: 5%;
+    top: 5%;
+    width: 90%;
+    height: 90%;
 
     font-size: 1em;
-    color: red;
+    color: #237e2c;
     vertical-align: top;
+}
+
+.selected > .pencil {
+    color: #35b842;
 }
 
 .pencils > .pencil {
@@ -198,10 +206,14 @@ body {
     transform: translate(-50%, -50%);
     
     font-size: 1em;
-    color: green;
+    color: #25757e;
     vertical-align: top;
 
     overflow: hidden;
+}
+
+.selected > .possible {
+    color: #38b2c0;
 }
 
 .possibles > .possible {

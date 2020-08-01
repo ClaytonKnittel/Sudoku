@@ -205,20 +205,10 @@ function Sudoku(props) {
     let [garb, setGarb] = React.useState(0);
     let shiftHeld = React.useRef(false);
 
-    let [gameState, setGameState] = React.useState(initGameState());
+    let gameState = props.gameState;
+    let setGameState = props.setGameState;
 
     let selected = selectedMap.current;
-
-    React.useEffect(() => {
-        if (props.state === 1) {
-            // go through setGivenList and make all tiles givens
-            gameState.forEach((tileState) => {
-                if (tileState.val != 0) {
-                    tileState.given = true;
-                }
-            });
-        }
-    }, [props.state]);
 
     let selectTile = (idx) => {
         if (!(idx in selected)) {
@@ -399,9 +389,45 @@ function Ctrl(props) {
 }
 
 
-function ClearButton() {
-    return (<div className="clearButton">
-        clear
+function anyNonGivens(state) {
+    let changes = false;
+    for (let i = 0; i < state.length; i++) {
+        let tileState = state[i];
+        if (!(tileState.given)) {
+            changes = (changes || (tileState.val != 0 || tileState.pencils != 0 || tileState.possibles != 0));
+        }
+    }
+    return changes;
+}
+
+
+function clearState(gameState, setGameState, setState) {
+    let state;
+    if (!anyNonGivens(gameState)) {
+        state = initGameState();
+        setState(0);
+    }
+    else {
+        state = copyGameState(gameState);
+        for (let i = 0; i < state.length; i++) {
+            let tileState = state[i];
+            if (!(tileState.given)) {
+                tileState.val = 0;
+                tileState.pencils = 0;
+                tileState.possibles = 0;
+                state[i] = tileState;
+            }
+        }
+    }
+    setGameState(state);
+}
+
+
+function ClearButton({ gameState, setGameState, state, setState }) {
+    return (<div className="clearButton" onClick={() => {
+        clearState(gameState, setGameState, setState);
+    }}>
+        {(anyNonGivens(gameState) && state == 1) ? "clear" : "reset"}
     </div>);
 }
 
@@ -412,16 +438,37 @@ function Screen() {
     // for game play, 0-2
     let [mode, setMode] = React.useState(0);
 
+    let [gameState, setGameState] = React.useState(initGameState());
+
     let beginGame = () => {
 
         setState(1);
     };
 
+    React.useEffect(() => {
+        if (state === 1) {
+            let gsc = copyGameState(gameState);
+            // go through setGivenList and make all tiles givens
+            gsc.forEach((tileState) => {
+                if (tileState.val != 0) {
+                    tileState.given = true;
+                }
+            });
+            setGameState(gsc);
+        }
+    }, [state]);
+
+    React.useEffect(() => {
+        if (state == 0) {
+            setMode(0);
+        }
+    }, [state]);
+
     return (<div>
         <div className="sudokuContainer">
-            <Sudoku state={state} mode={mode} />
+            <Sudoku gameState={gameState} setGameState={setGameState} state={state} mode={mode} />
         </div>
-        <ClearButton />
+        <ClearButton gameState={gameState} setGameState={setGameState} state={state} setState={setState}/>
         <Ctrl state={state} beginGame={beginGame} mode={mode} setMode={setMode}/>
     </div>);
 }
