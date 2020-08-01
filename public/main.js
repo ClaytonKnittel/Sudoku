@@ -465,7 +465,7 @@ function checkState(gameState) {
     for (let r = 0; r < 9; r++) {
         let m = 0;
         for (let c = 0; c < 9; c++) {
-            val = gameState[idx(r, c)].val;
+            let val = gameState[idx(r, c)].val;
             if (val == 0) {
                 return NOT_DONE;
             }
@@ -479,7 +479,7 @@ function checkState(gameState) {
     for (let c = 0; c < 9; c++) {
         let m = 0;
         for (let r = 0; r < 9; r++) {
-            val = gameState[idx(r, c)].val;
+            let val = gameState[idx(r, c)].val;
             if (val == 0) {
                 return NOT_DONE;
             }
@@ -496,7 +496,7 @@ function checkState(gameState) {
             let r = Math.floor(b / 3) * 3 + Math.floor(i / 3);
             let c = (b % 3) * 3 + (i % 3);
 
-            val = gameState[idx(r, c)].val;
+            let val = gameState[idx(r, c)].val;
             if (val == 0) {
                 return NOT_DONE;
             }
@@ -510,7 +510,7 @@ function checkState(gameState) {
 }
 
 
-function ClearButton({ gameState }) {
+function CheckButton({ gameState }) {
     return (<div className="checkButton" onClick={() => {
         let res = checkState(gameState);
         if (res == NOT_DONE) {
@@ -552,7 +552,6 @@ function Screen() {
             setState(data.state);
         });
         socketio.on("fetch_response", (data) => {
-            console.log("yo");
             setGameState(data.gameState);
             setState(data.state);
         });

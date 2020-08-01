@@ -121,6 +121,7 @@ function update_game(socket, data) {
 		new_state = g_current_state;
 	}
 
+	g_current_state = new_state;
 	g_mode = new_mode;
 
 	io.sockets.emit("update", {
