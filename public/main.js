@@ -472,6 +472,7 @@ function checkState(gameState) {
             m |= (1 << (val - 1));
         }
         if (m != 511) {
+            console.log("row", r, m);
             return NOT_RIGHT;
         }
     }
@@ -486,6 +487,7 @@ function checkState(gameState) {
             m |= (1 << (val - 1));
         }
         if (m != 511) {
+            console.log("cols", c, m);
             return NOT_RIGHT;
         }
     }
@@ -503,6 +505,7 @@ function checkState(gameState) {
             m |= (1 << (val - 1));
         }
         if (m != 511) {
+            console.log("box", b, m);
             return NOT_RIGHT;
         }
     }
