@@ -215,7 +215,3 @@ body {
 .selected > .possible {
     color: #38b2c0;
 }
-
-.possibles > .possible {
-    /* transform: translateY(-50%); */
-}

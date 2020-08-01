@@ -1,4 +1,6 @@
 
+var socketio = io.connect();
+
 
 // global var, whatever
 let g_key_callback = () => {};
@@ -244,16 +246,35 @@ function Sudoku(props) {
         if (num < 1 || num > 9) {
             return;
         }
+
+        let all_on;
         if (props.state === 0) {
+            all_on = true;
+            selected.forEach((idx) => {
+                if (!newState[idx].given) {
+                    all_on = all_on && (newState[idx].val == num);
+                }
+            });
+            if (all_on) {
+                num = 0;
+            }
             selected.forEach((idx) => {
                 newState[idx].val = num;
             });
             setGameState(newState);
         }
         else {
-            let all_on;
             switch (props.mode) {
                 case 0:
+                    all_on = true;
+                    selected.forEach((idx) => {
+                        if (!newState[idx].given) {
+                            all_on = all_on && (newState[idx].val == num);
+                        }
+                    });
+                    if (all_on) {
+                        num = 0;
+                    }
                     selected.forEach((idx) => {
                         if (!newState[idx].given) {
                             newState[idx].val = num;
@@ -401,11 +422,11 @@ function anyNonGivens(state) {
 }
 
 
-function clearState(gameState, setGameState, setState) {
+function clearState(gameState, setGameState, setBoth) {
     let state;
     if (!anyNonGivens(gameState)) {
         state = initGameState();
-        setState(0);
+        setBoth(0, state);
     }
     else {
         state = copyGameState(gameState);
@@ -418,14 +439,14 @@ function clearState(gameState, setGameState, setState) {
                 state[i] = tileState;
             }
         }
+        setGameState(state);
     }
-    setGameState(state);
 }
 
 
-function ClearButton({ gameState, setGameState, state, setState }) {
+function ClearButton({ gameState, setGameState, state, setBoth }) {
     return (<div className="clearButton" onClick={() => {
-        clearState(gameState, setGameState, setState);
+        clearState(gameState, setGameState, setBoth);
     }}>
         {(anyNonGivens(gameState) && state == 1) ? "clear" : "reset"}
     </div>);
@@ -440,10 +461,46 @@ function Screen() {
 
     let [gameState, setGameState] = React.useState(initGameState());
 
-    let beginGame = () => {
-
-        setState(1);
+    let changeState = (newState) => {
+        setState(newState);
+        socketio.emit("update", {
+            old_state: gameState,
+            new_state: gameState,
+            state: newState
+        });
+        console.log("state", newState);
     };
+
+    let beginGame = () => {
+        changeState(1);
+    };
+
+    React.useEffect(() => {
+        socketio.on("update", (data) => {
+            setGameState(data.gameState);
+            setState(data.state);
+        });
+    }, []);
+
+    let changeGameState = (newState) => {
+        setGameState(newState);
+        socketio.emit("update", {
+            old_state: gameState,
+            new_state: newState,
+            state: state
+        });
+        console.log("state", state);
+    };
+
+    let setBoth = (newState, newGameState) => {
+        setState(newState);
+        setGameState(newGameState);
+        socketio.emit("update", {
+            old_state: gameState,
+            new_state: newGameState,
+            state: newState
+        });
+    }
 
     React.useEffect(() => {
         if (state === 1) {
@@ -454,7 +511,7 @@ function Screen() {
                     tileState.given = true;
                 }
             });
-            setGameState(gsc);
+            changeGameState(gsc);
         }
     }, [state]);
 
@@ -466,9 +523,9 @@ function Screen() {
 
     return (<div>
         <div className="sudokuContainer">
-            <Sudoku gameState={gameState} setGameState={setGameState} state={state} mode={mode} />
+            <Sudoku gameState={gameState} setGameState={changeGameState} state={state} mode={mode} />
         </div>
-        <ClearButton gameState={gameState} setGameState={setGameState} state={state} setState={setState}/>
+        <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}/>
         <Ctrl state={state} beginGame={beginGame} mode={mode} setMode={setMode}/>
     </div>);
 }
