@@ -603,6 +603,30 @@ function CheckButton({ gameState }) {
     </div>);
 }
 
+function GameClock({ startTime }) {
+    let now = new Date().getTime();
+    let displayTime = now - startTime;
+    let [force, setForce] = React.useState(0);
+
+    console.log(startTime);
+    if (startTime === -1) {
+        return (<div></div>);
+    }
+    else {
+        let secs = Math.floor(displayTime / 1000);
+        let mins = Math.floor(secs / 60);
+        secs %= 60;
+        let str = mins.toString() + ":" + secs.toString(10).padStart(2, "0");
+        
+        let remainder = 1000 - (displayTime % 1000);
+        setTimeout(function() {
+            // force update this component
+            setForce(!force);
+        }, remainder);
+        return (<div>{str}</div>);
+    }
+}
+
 
 function setGivens(gameState) {
     let gsc = copyGameState(gameState);
@@ -637,6 +661,8 @@ function Screen() {
 
     let [selected, setSelected] = React.useState({});
 
+    let [starttime, setStarttime] = React.useState(-1);
+
     let user_color = React.useRef(-1);
 
     React.useEffect(() => {
@@ -649,11 +675,15 @@ function Screen() {
             setGameState(data.gameState);
             setState(data.state);
             setSelected(data.selected);
+            console.log("set to", data.starttime);
+            setStarttime(data.starttime);
         });
         socketio.on("fetch_response", (data) => {
             setGameState(data.gameState);
             setState(data.state);
             setSelected(data.selected);
+            console.log("set to", data.starttime);
+            setStarttime(data.starttime);
         });
 
         let token = window.localStorage.getItem("token");
@@ -716,6 +746,7 @@ function Screen() {
         </div>
         <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}/>
         <CheckButton gameState={gameState}/>
+        <GameClock startTime={starttime} />
         <Ctrl state={state} beginGame={beginGame} mode={mode} setMode={setMode}/>
     </div>);
 }

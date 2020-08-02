@@ -93,6 +93,7 @@ function gameStatesEqual(s1, s2) {
 let g_current_state = initGameState();
 let g_mode = 0;
 let g_selected = {};
+let g_starttime = -1;
 
 // map from tokens to user objects
 let g_users = new Map();
@@ -146,7 +147,8 @@ io.sockets.on("connection", function(socket) {
 			io.sockets.emit("update", {
 				gameState: g_current_state,
 				state: g_mode,
-				selected: g_selected
+				selected: g_selected,
+				starttime: g_starttime
 			});
 
 			g_users.delete(token);
@@ -184,7 +186,8 @@ io.sockets.on("connection", function(socket) {
 		socket.emit("fetch_response", {
 			gameState: g_current_state,
 			state: g_mode,
-			selected: g_selected
+			selected: g_selected,
+			starttime: g_starttime
 		});
 	});
 
@@ -238,6 +241,12 @@ function update_game(socket, data) {
 		update_g_state(new_state, user);
 	}
 	if ("state" in data) {
+		if (data.state === 0) {
+			g_starttime = -1;
+		}
+		else if (data.state === 1 && g_mode === 0) {
+			g_starttime = new Date().getTime();
+		}
 		g_mode = data.state;
 	}
 	if ("selected" in data) {
@@ -277,6 +286,7 @@ function update_game(socket, data) {
 	io.sockets.emit("update", {
 		gameState: g_current_state,
 		state: g_mode,
-		selected: g_selected
+		selected: g_selected,
+		starttime: g_starttime
 	});
 }
