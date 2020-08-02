@@ -92,6 +92,7 @@ function gameStatesEqual(s1, s2) {
 
 let g_current_state = initGameState();
 let g_mode = 0;
+let g_selected = {};
 
 // map from tokens to user objects
 let g_users = new Map();
@@ -129,6 +130,25 @@ io.sockets.on("connection", function(socket) {
 		}
 		let user = g_users.get(token);
 		let logout_timer = setTimeout(function() {
+			// remove their highlights from the selected map before deleting them
+			for (idx in g_selected) {
+				let user_colors = g_selected[idx];
+				if (user_colors.includes(user.color)) {
+					let new_cols = user_colors.filter((color) => color !== user.color);
+					if (new_cols.length > 0) {
+						g_selected[idx] = new_cols;
+					}
+					else {
+						delete g_selected[idx];
+					}
+				}
+			}
+			io.sockets.emit("update", {
+				gameState: g_current_state,
+				state: g_mode,
+				selected: g_selected
+			});
+
 			g_users.delete(token);
 			g_socket_id_to_tokens.delete(socket.id);
 			g_user_id_to_user.delete(user.id);
@@ -163,12 +183,14 @@ io.sockets.on("connection", function(socket) {
 	socket.on("fetch", () => {
 		socket.emit("fetch_response", {
 			gameState: g_current_state,
-			state: g_mode
+			state: g_mode,
+			selected: g_selected
 		});
 	});
 
 	socket.on("update", (data) => {
 		update_game(socket, data);
+		console.log(g_selected);
 	});
 
 });
@@ -194,15 +216,11 @@ function update_g_state(new_state, user) {
 
 
 function update_game(socket, data) {
-	if (!("old_state" in data) || !("new_state" in data) || !("state" in data) ||
-			!("token" in data)) {
+	if (!("token" in data)) {
 		console.log("bad request", data);
 		return;
 	}
-	let old_state = data.old_state;
-	let new_state = data.new_state;
-	let new_mode  = data.state;
-	let token 	  = data.token;
+	let token = data.token;
 
 	if (!g_users.has(token)) {
 		console.log(token, g_users);
@@ -213,17 +231,60 @@ function update_game(socket, data) {
 	}
 	let user = g_users.get(token);
 
-	if (!gameStatesEqual(old_state, g_current_state)) {
-		// conflict! for now just return current global state
-		new_state = g_current_state;
-	}
+	if (("old_state" in data) && ("new_state" in data)) {
+		let old_state = data.old_state;
+		let new_state = data.new_state;
 
-	update_g_state(new_state, user);
-	g_mode = new_mode;
+		if (!gameStatesEqual(old_state, g_current_state)) {
+			// conflict! for now just return current global state
+			new_state = g_current_state;
+		}
+
+		update_g_state(new_state, user);
+	}
+	if ("state" in data) {
+		g_mode = data.state;
+	}
+	if ("selected" in data) {
+		let selected = data.selected;
+		let user_color = user.color;
+		console.log("new", selected);
+		console.log(g_selected);
+		for (idx in selected) {
+			let user_colors = selected[idx];
+			if (user_colors.includes(user_color)) {
+				if (!(idx in g_selected)) {
+					g_selected[idx] = [user_color];
+				}
+				else {
+					let g_user_colors = g_selected[idx];
+					if (!g_user_colors.includes(user_color)) {
+						g_user_colors.push(user_color);
+					}
+				}
+			}
+		};
+
+		for (idx in g_selected) {
+			let user_colors = g_selected[idx];
+			if (user_colors.includes(user_color)) {
+				if (!(idx in selected) || !(selected[idx].includes(user_color))) {
+					let new_arr = user_colors.filter((color) => color !== user_color);
+					if (new_arr.length > 0) {
+						g_selected[idx] = new_arr;
+					}
+					else {
+						delete g_selected[idx];
+					}
+				}
+			}
+		}
+	}
 
 	io.sockets.emit("update", {
 		gameState: g_current_state,
-		state: g_mode
+		state: g_mode,
+		selected: g_selected
 	});
 	console.log(g_users);
 }

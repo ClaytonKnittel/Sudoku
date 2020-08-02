@@ -9,18 +9,42 @@ let g_click_outside = () => {};
 
 const user_colors = [
     {
-        color: "#ff0000"
+        color: "#ff0000",
+        selected_color: "#ff0000"
     },
     {
-        color: "#00ff00"
+        color: "#00ff00",
+        selected_color: "#00ff00"
     },
     {
-        color: "#0000ff"
+        color: "#0000ff",
+        selected_color: "#0000ff"
     },
     {
-        color: "#00ffff"
+        color: "#00ffff",
+        selected_color: "#00ffff"
     }
 ];
+
+
+
+function average_color(color_list) {
+    const re = /#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/;
+    let r = 0, g = 0, b = 0;
+    color_list.forEach((color) => {
+        let res = re.exec(color);
+        r += parseInt(res[1], 16);
+        g += parseInt(res[2], 16);
+        b += parseInt(res[3], 16);
+    });
+    r = Math.floor(r / color_list.length);
+    g = Math.floor(g / color_list.length);
+    b = Math.floor(b / color_list.length);
+    return "#" + r.toString(16).padStart(2, "0") +
+                 g.toString(16).padStart(2, "0") +
+                 b.toString(16).padStart(2, "0");
+}
+
 
 
 function Pencils(props) {
@@ -121,12 +145,24 @@ function Tile(props) {
 
     let empty = (val == 0) && (pencils == 0) && (possibles == 0);
 
-    let isSelected = selected.has(props.idx);
+    let sel_style = {};
+    if (props.idx in selected) {
+        // TODO iterate & average
+        let col_idxs = selected[props.idx];
+        let cols = [];
+        col_idxs.forEach((idx) => {
+            cols.push(user_colors[idx].selected_color);
+        });
+        let col = average_color(cols);
+        sel_style = {
+            backgroundColor: col
+        };
+    }
 
     let color_style = given ? {} : user_colors[state.user_color];
 
     return (
-        <span className={`tile${isSelected ? ' selected' : ''}${empty ? ' empty' : ''}`} onClick={() => {
+        <span className={`tile ${empty ? ' empty' : ''}`} style={sel_style} onClick={() => {
                 setSelected(props.idx);
             }}>
             <div className={`number_cell${empty ? '' : ' nonempty'}${given ? ' given' : (val !== 0 ? ' guess' : '')}`}>
@@ -186,36 +222,73 @@ function copyGameState(oldState) {
     return newState;
 }
 
+function deleteAllSelected(selected, user_color) {
+    for (idx in selected) {
+        let user_colors = selected[idx];
+        let new_lis = user_colors.filter((color) => color !== user_color);
+        if (new_lis.length === 0) {
+            delete selected[idx];
+        }
+        else {
+            selected[idx] = new_lis;
+        }
+    }
+}
+
 function Sudoku(props) {
-    let selectedMap = React.useRef(new Set());
-    let [garb, setGarb] = React.useState(0);
     let shiftHeld = React.useRef(false);
 
     let gameState = props.gameState;
     let setGameState = props.setGameState;
 
-    let selected = selectedMap.current;
+    let selected = props.selected;
+    let setSelected = props.setSelected;
 
     let selectTile = (idx) => {
-        if (!(idx in selected)) {
-            if (!shiftHeld.current) {
-                selected.clear();
-            }
-            selected.add(idx);
-            // force update
-            setGarb(!garb);
+        let selectedDup = {...selected};
+        let is_in = (idx in selectedDup);
+        let is_in_lis;
+        if (is_in) {
+            let user_colors = selectedDup[idx];
+            is_in_lis = false;
+            user_colors.forEach((user_color) => {
+                is_in_lis = is_in_lis && (user_color === props.user_color);
+            });
         }
+        if (is_in_lis) {
+            let new_lis = selectedDup[idx].filter((color) => color !== props.user_color);
+            if (new_lis.length > 0) {
+                selectedDup[idx] = new_lis;
+            }
+            else {
+                delete selectedDup[idx];
+            }
+        }
+        if (!shiftHeld.current) {
+            deleteAllSelected(selectedDup, props.user_color);
+        }
+        if (!is_in_lis) {
+            if (!(idx in selectedDup)) {
+                selectedDup[idx] = [props.user_color];
+            }
+            else {
+                selectedDup[idx].push(props.user_color);
+            }
+        }
+
+        setSelected(selectedDup);
     };
 
     let new_key_cb = (e) => {
         let newState = copyGameState(gameState);
 
         if (e.key === "Backspace") {
-            selected.forEach((idx) => {
-                if (!newState[idx].given) {
+            for (idx in selected) {
+                let user_colors = selected[idx];
+                if (user_colors == props.user_color && !newState[idx].given) {
                     newState[idx].val = 0;
                 }
-            });
+            }
             setGameState(newState);
             return;
         }
@@ -234,48 +307,56 @@ function Sudoku(props) {
         let all_on;
         if (props.state === 0) {
             all_on = true;
-            selected.forEach((idx) => {
-                if (!newState[idx].given) {
+            for (idx in selected) {
+                let user_colors = selected[idx];
+                if (user_colors.includes(props.user_color) && !newState[idx].given) {
                     all_on = all_on && (newState[idx].val == num);
                 }
-            });
+            }
             if (all_on) {
                 num = 0;
             }
-            selected.forEach((idx) => {
-                newState[idx].val = num;
-                newState[idx].user_color = props.user_color;
-            });
+            for (idx in selected) {
+                let user_colors = selected[idx];
+                if (user_colors.includes(props.user_color)) {
+                    newState[idx].val = num;
+                    newState[idx].user_color = props.user_color;
+                }
+            }
             setGameState(newState);
         }
         else {
             switch (props.mode) {
                 case 0:
                     all_on = true;
-                    selected.forEach((idx) => {
-                        if (!newState[idx].given) {
+                    for (idx in selected) {
+                        let user_colors = selected[idx];
+                        if (user_colors.includes(props.user_color) && !newState[idx].given) {
                             all_on = all_on && (newState[idx].val == num);
                         }
-                    });
+                    }
                     if (all_on) {
                         num = 0;
                     }
-                    selected.forEach((idx) => {
-                        if (!newState[idx].given) {
+                    for (idx in selected) {
+                        let user_colors = selected[idx];
+                        if (user_colors.includes(props.user_color) && !newState[idx].given) {
                             newState[idx].val = num;
                             newState[idx].user_color = props.user_color;
                         }
-                    });
+                    }
                     break;
                 case 1:
                     all_on = true;
-                    selected.forEach((idx) => {
-                        if (!newState[idx].given) {
+                    for (idx in selected) {
+                        let user_colors = selected[idx];
+                        if (user_colors.includes(props.user_color) && !newState[idx].given) {
                             all_on = all_on && ((newState[idx].pencils & (1 << (num - 1))) != 0);
                         }
-                    });
-                    selected.forEach((idx) => {
-                        if (!newState[idx].given) {
+                    }
+                    for (idx in selected) {
+                        let user_colors = selected[idx];
+                        if (user_colors.includes(props.user_color) && !newState[idx].given) {
                             if (all_on) {
                                 newState[idx].pencils &= ~(1 << (num - 1));
                                 newState[idx].user_color = props.user_color;
@@ -285,17 +366,19 @@ function Sudoku(props) {
                                 newState[idx].user_color = props.user_color;
                             }
                         }
-                    });
+                    }
                     break;
                 case 2:
                     all_on = true;
-                    selected.forEach((idx) => {
-                        if (!newState[idx].given) {
+                    for (idx in selected) {
+                        let user_colors = selected[idx];
+                        if (user_colors.includes(props.user_color) && !newState[idx].given) {
                             all_on = all_on && ((newState[idx].possibles & (1 << (num - 1))) != 0);
                         }
-                    });
-                    selected.forEach((idx) => {
-                        if (!newState[idx].given) {
+                    }
+                    for (idx in selected) {
+                        let user_colors = selected[idx];
+                        if (user_colors.includes(props.user_color) && !newState[idx].given) {
                             if (all_on) {
                                 newState[idx].possibles &= ~(1 << (num - 1));
                                 newState[idx].user_color = props.user_color;
@@ -305,7 +388,7 @@ function Sudoku(props) {
                                 newState[idx].user_color = props.user_color;
                             }
                         }
-                    });
+                    }
                     break;
             }
             setGameState(newState);
@@ -321,9 +404,9 @@ function Sudoku(props) {
 
     let click_outside = (e) => {
         if (!document.getElementById('board').contains(e.target)){
-            selected.clear();
-            // force update
-            setGarb(!garb);
+            let selectedDup = {...selected};
+            deleteAllSelected(selectedDup, props.user_color);
+            setSelected(selectedDup);
         }
     }
 
@@ -534,6 +617,16 @@ function setGivens(gameState) {
 }
 
 
+function getToken() {
+    if (window.localStorage.getItem("token") === null) {
+        return "";
+    }
+    else {
+        return window.localStorage.token;
+    }
+}
+
+
 function Screen() {
     // game create/game play
     let [state, setState] = React.useState(0);
@@ -541,6 +634,8 @@ function Screen() {
     let [mode, setMode] = React.useState(0);
 
     let [gameState, setGameState] = React.useState(initGameState());
+
+    let [selected, setSelected] = React.useState({});
 
     let user_color = React.useRef(-1);
 
@@ -553,11 +648,12 @@ function Screen() {
         socketio.on("update", (data) => {
             setGameState(data.gameState);
             setState(data.state);
-            console.log(data.gameState);
+            setSelected(data.selected);
         });
         socketio.on("fetch_response", (data) => {
             setGameState(data.gameState);
             setState(data.state);
+            setSelected(data.selected);
         });
 
         let token = window.localStorage.getItem("token");
@@ -573,36 +669,31 @@ function Screen() {
 
     let changeGameState = (newState) => {
         setGameState(newState);
-        let token;
-        if (window.localStorage.getItem("token") === null) {
-            token = "";
-        }
-        else {
-            token = window.localStorage.token;
-        }
         socketio.emit("update", {
             old_state: gameState,
             new_state: newState,
             state: state,
-            token: token
+            token: getToken()
         });
     };
 
     let setBoth = (newState, newGameState) => {
         setState(newState);
         setGameState(newGameState);
-        let token;
-        if (window.localStorage.getItem("token") === null) {
-            token = "";
-        }
-        else {
-            token = window.localStorage.token;
-        }
         socketio.emit("update", {
             old_state: gameState,
             new_state: newGameState,
             state: newState,
-            token: token
+            token: getToken()
+        });
+    }
+
+    let changeSelected = (selected_set) => {
+        setSelected(selected_set);
+        console.log("change", selected_set);
+        socketio.emit("update", {
+            selected: selected_set,
+            token: getToken()
         });
     }
 
@@ -620,7 +711,8 @@ function Screen() {
 
     return (<div>
         <div className="sudokuContainer">
-            <Sudoku gameState={gameState} setGameState={changeGameState} state={state} mode={mode} user_color={user_color.current} />
+            <Sudoku gameState={gameState} setGameState={changeGameState} state={state} mode={mode}
+                    user_color={user_color.current} selected={selected} setSelected={changeSelected} />
         </div>
         <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}/>
         <CheckButton gameState={gameState}/>
