@@ -19,6 +19,10 @@ const user_colors = [
     {
         color: "#7d6a16",
         selected_color: "#ffe26c"
+    },
+    {
+        color: "#247a48",
+        selected_color: "#7cffa1"
     }
 ];
 
