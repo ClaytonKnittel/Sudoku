@@ -555,7 +555,7 @@ function ClearButton({ gameState, setGameState, state, setBoth }) {
     return (<div className="clearButton" onClick={() => {
         clearState(gameState, setGameState, setBoth);
     }}>
-        {(anyNonGivens(gameState) && state == 1) ? "clear" : "re-enter"}
+        {(anyNonGivens(gameState) || state == 0) ? "clear" : "re-enter"}
     </div>);
 }
 
