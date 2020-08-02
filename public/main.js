@@ -291,7 +291,7 @@ function Sudoku(props) {
         let newState = copyGameState(gameState);
 
         if (e.key === "Backspace") {
-            for (idx in selected) {
+            for (const idx in selected) {
                 let user_colors = selected[idx];
                 if (user_colors == props.user_color && !newState[idx].given) {
                     newState[idx].val = 0;
