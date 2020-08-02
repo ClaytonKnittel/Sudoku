@@ -703,6 +703,12 @@ function Screen() {
             setSelected(data.selected);
             setStarttime(data.starttime);
         });
+        socketio.on("no_solutions", () => {
+            alert("warning: this puzzle appears to have no solutions");
+        });
+        socketio.on("multiple_solutions", () => {
+            alert("warning: this puzzle appears to have multiple solutions");
+        });
 
         let token = window.localStorage.getItem("token");
         if (token === null) {
