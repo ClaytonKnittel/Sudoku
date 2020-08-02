@@ -99,7 +99,7 @@ let g_users = new Map();
 let g_socket_id_to_tokens = new Map();
 let g_user_id_to_user = new Map();
 let g_user_idx = 0;
-const n_user_colors = 10;
+const n_user_colors = 3;
 
 function addUserObj(socket_id) {
 	let token = crypto.randomBytes(32).toString("hex");

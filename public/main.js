@@ -9,20 +9,16 @@ let g_click_outside = () => {};
 
 const user_colors = [
     {
-        color: "#ff0000",
-        selected_color: "#ff0000"
+        color: "#195f7d",
+        selected_color: "#6cdaff"
     },
     {
-        color: "#00ff00",
-        selected_color: "#00ff00"
+        color: "#7d1638",
+        selected_color: "#ff6ca2"
     },
     {
-        color: "#0000ff",
-        selected_color: "#0000ff"
-    },
-    {
-        color: "#00ffff",
-        selected_color: "#00ffff"
+        color: "#7d6a16",
+        selected_color: "#ffe26c"
     }
 ];
 
