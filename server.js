@@ -7,6 +7,7 @@ var http = require("http"),
 	crypto = require("crypto");
 const { resolve } = require("path");
 const { isNullOrUndefined } = require("util");
+const { timeEnd } = require("console");
 
 let port = 80;
 
@@ -503,6 +504,10 @@ io.sockets.on("connection", function(socket) {
 		update_game(socket, data);
 	});
 
+	socket.on("verify_cells", (data) => {
+		verify_cells(socket, data);
+	})
+
 });
 
 
@@ -566,7 +571,7 @@ function update_game(socket, data) {
 				else {
 					g_solution = res;
 				}
-			})
+			});
 		}
 		g_mode = data.state;
 	}
@@ -601,6 +606,45 @@ function update_game(socket, data) {
 					}
 				}
 			}
+		}
+	}
+
+	io.sockets.emit("update", {
+		gameState: g_current_state,
+		state: g_mode,
+		selected: g_selected,
+		starttime: g_starttime
+	});
+}
+
+
+function verify_cells(socket, data) {
+	if (!("token" in data)) {
+		console.log("bad request", data);
+		return;
+	}
+	let token = data.token;
+
+	if (!g_users.has(token)) {
+		return;
+	}
+	let user = g_users.get(token);
+	
+	if (g_solution === 0) {
+		// no solution
+		return;
+	}
+
+	for (let i = 0; i < g_solution.length; i++) {
+		let r = Math.floor(i / 9);
+		let c = i % 9;
+
+		let tile = g_current_state[_idx(r, c)];
+		let ans  = g_solution[r * 9 + c];
+
+		if (tile.val !== 0 && ans !== tile.val) {
+			// make all incorrect cells negative
+			tile.val = -tile.val;
 		}
 	}
 

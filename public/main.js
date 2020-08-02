@@ -137,7 +137,11 @@ function Possibles(props) {
 
 function Tile(props) {
     let state = props.gameState[props.idx];
+
     let val = state.val;
+    let incorrect = (val < 0);
+    val = Math.abs(val);
+
     let pencils = state.pencils;
     let possibles = state.possibles;
     let given = state.given;
@@ -161,7 +165,10 @@ function Tile(props) {
         };
     }
 
-    let color_style = given ? {} : user_colors[state.user_color];
+    let color_style = {
+        color: (given ? "#000000" : (incorrect ? "#afafaf"
+                    : (state.user_color >= 0 ? user_colors[state.user_color].color : "#000000")))
+    };
 
     if (props.highlight_all == val && !(props.idx in selected)) {
         sel_style = {
@@ -612,9 +619,11 @@ function CheckButton({ gameState }) {
         let res = checkState(gameState);
         if (res == NOT_DONE) {
             alert("Not done yet!");
+            socketio.emit("verify_cells", {token: getToken()});
         }
         else if (res == NOT_RIGHT) {
             alert("Not quite right!");
+            socketio.emit("verify_cells", {token: getToken()});
         }
         else {
             alert("Correct!");
