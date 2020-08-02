@@ -190,7 +190,6 @@ io.sockets.on("connection", function(socket) {
 
 	socket.on("update", (data) => {
 		update_game(socket, data);
-		console.log(g_selected);
 	});
 
 });
@@ -223,10 +222,6 @@ function update_game(socket, data) {
 	let token = data.token;
 
 	if (!g_users.has(token)) {
-		console.log(token, g_users);
-		g_users.forEach((v, k) => {
-			console.log(k, token === k);
-		});
 		return;
 	}
 	let user = g_users.get(token);
@@ -248,8 +243,6 @@ function update_game(socket, data) {
 	if ("selected" in data) {
 		let selected = data.selected;
 		let user_color = user.color;
-		console.log("new", selected);
-		console.log(g_selected);
 		for (idx in selected) {
 			let user_colors = selected[idx];
 			if (user_colors.includes(user_color)) {
@@ -286,5 +279,4 @@ function update_game(socket, data) {
 		state: g_mode,
 		selected: g_selected
 	});
-	console.log(g_users);
 }
