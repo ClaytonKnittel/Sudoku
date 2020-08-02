@@ -26,6 +26,8 @@ const user_colors = [
     }
 ];
 
+const highlight_all_col = "#b2b2b2";
+
 
 
 function average_color(color_list) {
@@ -161,6 +163,12 @@ function Tile(props) {
 
     let color_style = given ? {} : user_colors[state.user_color];
 
+    if (props.highlight_all == val && !(props.idx in selected)) {
+        sel_style = {
+            backgroundColor: highlight_all_col
+        };
+    }
+
     return (
         <span className={`tile ${empty ? ' empty' : ''}`} style={sel_style} onClick={() => {
                 setSelected(props.idx);
@@ -181,21 +189,21 @@ function Box(props) {
     let sel = props.selected;
     return (<div className='box'>
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 0} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 1} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 2} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 0} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 1} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 2} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
         </div>
 
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 3} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 4} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 5} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 3} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 4} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 5} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
         </div>
 
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 6} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 7} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 8} gameState={props.gameState} selected={sel} setSelected={props.setSelected}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 6} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 7} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 8} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
         </div>
     </div>);
 }
@@ -223,7 +231,7 @@ function copyGameState(oldState) {
 }
 
 function deleteAllSelected(selected, user_color) {
-    for (idx in selected) {
+    for (const idx in selected) {
         let user_colors = selected[idx];
         let new_lis = user_colors.filter((color) => color !== user_color);
         if (new_lis.length === 0) {
@@ -307,7 +315,7 @@ function Sudoku(props) {
         let all_on;
         if (props.state === 0) {
             all_on = true;
-            for (idx in selected) {
+            for (const idx in selected) {
                 let user_colors = selected[idx];
                 if (user_colors.includes(props.user_color) && !newState[idx].given) {
                     all_on = all_on && (newState[idx].val == num);
@@ -316,7 +324,7 @@ function Sudoku(props) {
             if (all_on) {
                 num = 0;
             }
-            for (idx in selected) {
+            for (const idx in selected) {
                 let user_colors = selected[idx];
                 if (user_colors.includes(props.user_color)) {
                     newState[idx].val = num;
@@ -329,7 +337,7 @@ function Sudoku(props) {
             switch (props.mode) {
                 case 0:
                     all_on = true;
-                    for (idx in selected) {
+                    for (const idx in selected) {
                         let user_colors = selected[idx];
                         if (user_colors.includes(props.user_color) && !newState[idx].given) {
                             all_on = all_on && (newState[idx].val == num);
@@ -338,7 +346,7 @@ function Sudoku(props) {
                     if (all_on) {
                         num = 0;
                     }
-                    for (idx in selected) {
+                    for (const idx in selected) {
                         let user_colors = selected[idx];
                         if (user_colors.includes(props.user_color) && !newState[idx].given) {
                             newState[idx].val = num;
@@ -348,13 +356,13 @@ function Sudoku(props) {
                     break;
                 case 1:
                     all_on = true;
-                    for (idx in selected) {
+                    for (const idx in selected) {
                         let user_colors = selected[idx];
                         if (user_colors.includes(props.user_color) && !newState[idx].given) {
                             all_on = all_on && ((newState[idx].pencils & (1 << (num - 1))) != 0);
                         }
                     }
-                    for (idx in selected) {
+                    for (const idx in selected) {
                         let user_colors = selected[idx];
                         if (user_colors.includes(props.user_color) && !newState[idx].given) {
                             if (all_on) {
@@ -370,13 +378,13 @@ function Sudoku(props) {
                     break;
                 case 2:
                     all_on = true;
-                    for (idx in selected) {
+                    for (const idx in selected) {
                         let user_colors = selected[idx];
                         if (user_colors.includes(props.user_color) && !newState[idx].given) {
                             all_on = all_on && ((newState[idx].possibles & (1 << (num - 1))) != 0);
                         }
                     }
-                    for (idx in selected) {
+                    for (const idx in selected) {
                         let user_colors = selected[idx];
                         if (user_colors.includes(props.user_color) && !newState[idx].given) {
                             if (all_on) {
@@ -422,23 +430,37 @@ function Sudoku(props) {
     window.addEventListener('click', click_outside);
     g_click_outside = click_outside;
 
+    // highlight clicked tiles
+    let clicked_tile = -1;
+    let highlight_all = -1;
+    for (const idx in selected) {
+        let ar = selected[idx];
+        if (ar.includes(props.user_color) && clicked_tile !== -2) {
+            clicked_tile = (clicked_tile === -1 ? idx : -2);
+        }
+    }
+
+    if (clicked_tile >= 0 && gameState[clicked_tile].val != 0) {
+        highlight_all = gameState[clicked_tile].val;
+    }
+
     return (<div id='board' className='board'>
         <div className='board-row'>
-            <Box state={props.state} idx_off={0}  gameState={gameState} selected={selected} setSelected={selectTile} />
-            <Box state={props.state} idx_off={9}  gameState={gameState} selected={selected} setSelected={selectTile} />
-            <Box state={props.state} idx_off={18} gameState={gameState} selected={selected} setSelected={selectTile} />
+            <Box state={props.state} idx_off={0}  gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
+            <Box state={props.state} idx_off={9}  gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
+            <Box state={props.state} idx_off={18} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
         </div>
 
         <div className='board-row'>
-            <Box state={props.state} idx_off={27} gameState={gameState} selected={selected} setSelected={selectTile} />
-            <Box state={props.state} idx_off={36} gameState={gameState} selected={selected} setSelected={selectTile} />
-            <Box state={props.state} idx_off={45} gameState={gameState} selected={selected} setSelected={selectTile} />
+            <Box state={props.state} idx_off={27} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
+            <Box state={props.state} idx_off={36} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
+            <Box state={props.state} idx_off={45} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
         </div>
 
         <div className='board-row'>
-            <Box state={props.state} idx_off={54} gameState={gameState} selected={selected} setSelected={selectTile} />
-            <Box state={props.state} idx_off={63} gameState={gameState} selected={selected} setSelected={selectTile} />
-            <Box state={props.state} idx_off={72} gameState={gameState} selected={selected} setSelected={selectTile} />
+            <Box state={props.state} idx_off={54} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
+            <Box state={props.state} idx_off={63} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
+            <Box state={props.state} idx_off={72} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
         </div>
     </div>);
 }
@@ -529,19 +551,18 @@ const NOT_DONE = 1;
 const NOT_RIGHT = 2;
 const RIGHT = 3;
 
-function idx(r, c) {
+function _idx(r, c) {
     let b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
     let i = (r % 3) * 3 + (c % 3);
     return b * 9 + i;
 }
 
 function checkState(gameState) {
-    console.log(gameState);
     // check rows
     for (let r = 0; r < 9; r++) {
         let m = 0;
         for (let c = 0; c < 9; c++) {
-            let val = gameState[idx(r, c)].val;
+            let val = gameState[_idx(r, c)].val;
             if (val == 0) {
                 return NOT_DONE;
             }
@@ -555,7 +576,7 @@ function checkState(gameState) {
     for (let c = 0; c < 9; c++) {
         let m = 0;
         for (let r = 0; r < 9; r++) {
-            let val = gameState[idx(r, c)].val;
+            let val = gameState[_idx(r, c)].val;
             if (val == 0) {
                 return NOT_DONE;
             }
@@ -572,7 +593,7 @@ function checkState(gameState) {
             let r = Math.floor(b / 3) * 3 + Math.floor(i / 3);
             let c = (b % 3) * 3 + (i % 3);
 
-            let val = gameState[idx(r, c)].val;
+            let val = gameState[_idx(r, c)].val;
             if (val == 0) {
                 return NOT_DONE;
             }
@@ -608,7 +629,6 @@ function GameClock({ startTime }) {
     let displayTime = now - startTime;
     let [force, setForce] = React.useState(0);
 
-    console.log(startTime);
     if (startTime === -1) {
         return (<div></div>);
     }
@@ -675,14 +695,12 @@ function Screen() {
             setGameState(data.gameState);
             setState(data.state);
             setSelected(data.selected);
-            console.log("set to", data.starttime);
             setStarttime(data.starttime);
         });
         socketio.on("fetch_response", (data) => {
             setGameState(data.gameState);
             setState(data.state);
             setSelected(data.selected);
-            console.log("set to", data.starttime);
             setStarttime(data.starttime);
         });
 
@@ -720,7 +738,6 @@ function Screen() {
 
     let changeSelected = (selected_set) => {
         setSelected(selected_set);
-        console.log("change", selected_set);
         socketio.emit("update", {
             selected: selected_set,
             token: getToken()
