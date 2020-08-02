@@ -259,6 +259,8 @@ function Sudoku(props) {
     let selected = props.selected;
     let setSelected = props.setSelected;
 
+    let finished = props.finished;
+
     let selectTile = (idx) => {
         let selectedDup = {...selected};
         let is_in = (idx in selectedDup);
@@ -297,6 +299,14 @@ function Sudoku(props) {
     let new_key_cb = (e) => {
         let newState = copyGameState(gameState);
 
+        if (e.key === "Shift") {
+            shiftHeld.current = true;
+        }
+
+        if (finished) {
+            return;
+        }
+
         if (e.key === "Backspace") {
             for (const idx in selected) {
                 let user_colors = selected[idx];
@@ -306,9 +316,6 @@ function Sudoku(props) {
             }
             setGameState(newState);
             return;
-        }
-        if (e.key === "Shift") {
-            shiftHeld.current = true;
         }
 
         let num = parseInt(e.key);
@@ -524,9 +531,12 @@ function anyNonGivens(state) {
 }
 
 
-function clearState(gameState, setGameState, setBoth) {
+function clearState(gameState, setGameState, setBoth, finished, resetFn) {
     let state;
-    if (!anyNonGivens(gameState)) {
+    if (finished) {
+        resetFn();
+    }
+    else if (!anyNonGivens(gameState)) {
         // set all givens back to non-givens
         state = copyGameState(gameState);
         for (let i = 0; i < state.length; i++) {
@@ -551,11 +561,11 @@ function clearState(gameState, setGameState, setBoth) {
 }
 
 
-function ClearButton({ gameState, setGameState, state, setBoth }) {
+function ClearButton({ gameState, setGameState, state, setBoth, finished, resetFn }) {
     return (<div className="clearButton" onClick={() => {
-        clearState(gameState, setGameState, setBoth);
+        clearState(gameState, setGameState, setBoth, finished, resetFn);
     }}>
-        {(anyNonGivens(gameState) || state == 0) ? "clear" : "re-enter"}
+        {finished ? "reset" : ((anyNonGivens(gameState) || state == 0) ? "clear" : "re-enter")}
     </div>);
 }
 
@@ -638,15 +648,22 @@ function CheckButton({ gameState }) {
     </div>);
 }
 
-function GameClock({ startTime }) {
+function GameClock({ startTime, endTime }) {
     let now = new Date().getTime();
-    let displayTime = now - startTime;
     let [force, setForce] = React.useState(0);
 
     if (startTime === -1) {
         return (<div></div>);
     }
     else {
+        let displayTime;
+        if (endTime === -1) {
+            displayTime = now - startTime;
+        }
+        else {
+            console.log(endTime, "!=", -1);
+            displayTime = endTime - startTime;
+        }
         let secs = Math.floor(displayTime / 1000);
         let mins = Math.floor(secs / 60);
         secs %= 60;
@@ -696,8 +713,11 @@ function Screen() {
     let [selected, setSelected] = React.useState({});
 
     let [starttime, setStarttime] = React.useState(-1);
+    let [endtime, setEndtime] = React.useState(-1);
 
     let user_color = React.useRef(-1);
+    // to be set when a solution has been found
+    let [finished, setFinished] = React.useState(false);
 
     React.useEffect(() => {
         socketio.on("login_response", (data) => {
@@ -710,12 +730,16 @@ function Screen() {
             setState(data.state);
             setSelected(data.selected);
             setStarttime(data.starttime);
+            setEndtime(data.endtime);
+            setFinished(data.finished);
         });
         socketio.on("fetch_response", (data) => {
             setGameState(data.gameState);
             setState(data.state);
             setSelected(data.selected);
             setStarttime(data.starttime);
+            setEndtime(data.endtime);
+            setFinished(data.finished);
         });
         socketio.on("no_solutions", () => {
             alert("warning: this puzzle appears to have no solutions");
@@ -770,6 +794,14 @@ function Screen() {
         setBoth(1, gsc);
     };
 
+    let resetFn = () => {
+        setState(0);
+        setGameState(initGameState());
+        socketio.emit("reset", {
+            token: getToken()
+        });
+    }
+
     React.useEffect(() => {
         if (state == 0) {
             setMode(0);
@@ -779,11 +811,13 @@ function Screen() {
     return (<div>
         <div className="sudokuContainer">
             <Sudoku gameState={gameState} setGameState={changeGameState} state={state} mode={mode}
-                    user_color={user_color.current} selected={selected} setSelected={changeSelected} />
+                    user_color={user_color.current} selected={selected} setSelected={changeSelected}
+                    finished={finished} />
         </div>
-        <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}/>
+        <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}
+                    finished={finished} resetFn={resetFn}/>
         <CheckButton gameState={gameState}/>
-        <GameClock startTime={starttime} />
+        <GameClock startTime={starttime} endTime={endtime} />
         <Ctrl state={state} beginGame={beginGame} mode={mode} setMode={setMode}/>
     </div>);
 }
