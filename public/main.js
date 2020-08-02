@@ -527,7 +527,12 @@ function anyNonGivens(state) {
 function clearState(gameState, setGameState, setBoth) {
     let state;
     if (!anyNonGivens(gameState)) {
-        state = initGameState();
+        // set all givens back to non-givens
+        state = copyGameState(gameState);
+        for (let i = 0; i < state.length; i++) {
+            let tileState = state[i];
+            tileState.given = false;
+        }
         setBoth(0, state);
     }
     else {
@@ -550,7 +555,7 @@ function ClearButton({ gameState, setGameState, state, setBoth }) {
     return (<div className="clearButton" onClick={() => {
         clearState(gameState, setGameState, setBoth);
     }}>
-        {(anyNonGivens(gameState) && state == 1) ? "clear" : "reset"}
+        {(anyNonGivens(gameState) && state == 1) ? "clear" : "re-enter"}
     </div>);
 }
 
