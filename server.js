@@ -638,9 +638,32 @@ function update_game(socket, data) {
 			g_endtime = -1;
 			g_solution = 0;
 			g_finished = false;
+
+			if (g_mode === 1) {
+				// unset all givens
+				g_current_state.forEach((tile) => {
+					tile.given = false;
+				});
+			}
 		}
 		else if (data.state === 1 && g_mode === 0) {
 			g_starttime = new Date().getTime();
+
+			// for (let i = 0; i < 9; i++) {
+			// 	g_current_state[_idx(i, 0)].val = i + 1;
+			// 	g_current_state[_idx((i + 6) % 9, 1)].val = i + 1;
+			// 	g_current_state[_idx((i + 3) % 9, 2)].val = i + 1;
+			// 	g_current_state[_idx((i + 1) % 9, 3)].val = i + 1;
+			// 	g_current_state[_idx((i + 7) % 9, 4)].val = i + 1;
+			// 	g_current_state[_idx((i + 4) % 9, 5)].val = i + 1;
+			// 	g_current_state[_idx((i + 2) % 9, 6)].val = i + 1;
+			// 	g_current_state[_idx((i + 8) % 9, 7)].val = i + 1;
+
+			// 	for (let c = 0; c < 8; c++) {
+			// 		g_current_state[_idx(i, c)].user_color = 0;
+			// 		g_current_state[_idx(i, c)].given = true;
+			// 	}
+			// }
 
 			solveGame(g_current_state).then((res) => {
 				if (res === NO_SOLUTIONS) {
