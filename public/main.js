@@ -7,6 +7,12 @@ let g_key_callback = () => {};
 let g_keyup_callback = () => {};
 let g_click_outside = () => {};
 
+
+/*
+ * min distance (in pixels) mouse must be drug from the position it was clicked to consider it a drag
+ */
+const MOUSE_DRAG_MIN_DIST = 5;
+
 const user_colors = [
     {
         color: "#195f7d",
@@ -179,7 +185,7 @@ function Tile(props) {
     React.useEffect(() => {
         window.addEventListener('mousemove', (event) => {
             if (document.getElementById(`tile_${props.idx}`).contains(event.target)) {
-                props.drag.current(props.idx);
+                props.drag.current(props.idx, event.pageX, event.pageY);
             }
         });
     }, []);
@@ -284,6 +290,7 @@ function numSelected(selected, user_color) {
 function Sudoku(props) {
     let shiftHeld = React.useRef(false);
     let mouseHeld = React.useRef(false);
+    let mouseClickPos = React.useRef(0);
     let mouseDragCb = React.useRef(() => {});
 
     let gameState = props.gameState;
@@ -329,9 +336,21 @@ function Sudoku(props) {
         setSelected(selectedDup);
     };
 
-    mouseDragCb.current = (idx) => {
+    mouseDragCb.current = (idx, mx, my) => {
         if (!mouseHeld.current) {
             return;
+        }
+        if (mouseClickPos.current !== 0) {
+            let [ox, oy] = mouseClickPos.current;
+            let dx = (mx - ox);
+            let dy = (my - oy);
+            if ((dx * dx) + (dy * dy) <= MOUSE_DRAG_MIN_DIST * MOUSE_DRAG_MIN_DIST) {
+                // less than the min distance away from the click position
+                return;
+            }
+            else {
+                mouseClickPos.current = 0;
+            }
         }
         let is_in = (idx in selected);
         if (is_in) {
@@ -484,6 +503,7 @@ function Sudoku(props) {
     };
 
     let click_outside = (e) => {
+        mouseClickPos.current = [e.pageX, e.pageY];
         if (!document.getElementById('board').contains(e.target)){
             let selectedDup = {...selected};
             deleteAllSelected(selectedDup, props.user_color);
@@ -718,9 +738,14 @@ function CheckButton({ gameState }) {
     </div>);
 }
 
-function GameClock({ startTime, endTime }) {
+function GameClock({ startTime, endTime, finished }) {
     let now = new Date().getTime();
     let [force, setForce] = React.useState(0);
+
+    let style = {};
+    if (finished) {
+        style.color = "green";
+    }
 
     if (startTime === -1) {
         return (<div></div>);
@@ -744,7 +769,7 @@ function GameClock({ startTime, endTime }) {
             // force update this component
             setForce(!force);
         }, remainder);
-        return (<div>{str}</div>);
+        return (<div style={style}>{str}</div>);
     }
 }
 
@@ -887,7 +912,7 @@ function Screen() {
         <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}
                     finished={finished} resetFn={resetFn}/>
         <CheckButton gameState={gameState}/>
-        <GameClock startTime={starttime} endTime={endtime} />
+        <GameClock startTime={starttime} endTime={endtime} finished={finished} />
         <Ctrl state={state} beginGame={beginGame} mode={mode} setMode={setMode}/>
     </div>);
 }
