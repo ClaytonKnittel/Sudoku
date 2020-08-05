@@ -89,11 +89,33 @@ body {
     background-color: #b4b4b4;
 }
 
+.hintButton {
+    position: absolute;
+    right: 0;
+    top: 25%;
+    width: calc(10vw - 24px);
+    cursor: pointer;
+    border: 2px solid black;
+    border-radius: 4px;
+
+    padding: 10px;
+
+    text-align: center;
+
+    transition: background-color .13s linear;
+    background-color: #ffffff;
+}
+
+.hintButton:hover {
+    transition: background-color .13s linear;
+    background-color: #b4b4b4;
+}
+
 
 .undoButton {
     position: absolute;
     right: 0;
-    top: 25%;
+    top: 32%;
     width: calc(10vw - 24px);
     cursor: pointer;
     border: 2px solid black;
@@ -116,7 +138,7 @@ body {
 .redoButton {
     position: absolute;
     right: 0;
-    top: 32%;
+    top: 39%;
     width: calc(10vw - 24px);
     cursor: pointer;
     border: 2px solid black;

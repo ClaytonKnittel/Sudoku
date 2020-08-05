@@ -13,6 +13,8 @@ let g_click_outside = () => {};
  */
 const MOUSE_DRAG_MIN_DIST = 5;
 
+const hinted_color = "#9f9f9f";
+
 const user_colors = [
     {
         color: "#195f7d",
@@ -158,13 +160,18 @@ function Tile(props) {
     let empty = (val == 0) && (pencils == 0) && (possibles == 0);
 
     let sel_style = {};
+    let cols = [];
     if (props.idx in selected) {
         // TODO iterate & average
         let col_idxs = selected[props.idx];
-        let cols = [];
         col_idxs.forEach((idx) => {
             cols.push(user_colors[idx].selected_color);
         });
+    }
+    if (state.hinted) {
+        cols.push(hinted_color);
+    }
+    if (cols.length > 0) {
         let col = average_color(cols);
         sel_style = {
             backgroundColor: col
@@ -389,6 +396,10 @@ function Sudoku(props) {
                             newState[idx].user_color = props.user_color;
                         }
                     }
+                    // check if any cells are hinted
+                    newState.forEach((tile, idx) => {
+                        tile.hinted = false;
+                    });
                     break;
                 case 1:
                     all_on = true;
@@ -572,10 +583,7 @@ function clearState(gameState, setGameState, setBoth, finished, resetFn) {
         for (let i = 0; i < state.length; i++) {
             let tileState = state[i];
             if (!(tileState.given)) {
-                tileState.val = 0;
-                tileState.pencils = 0;
-                tileState.possibles = 0;
-                state[i] = tileState;
+                state[i] = initTile();
             }
         }
         setGameState(state);
@@ -611,6 +619,12 @@ function CheckButton({ gameState }) {
     </div>);
 }
 
+function HintButton() {
+    return (<div className="hintButton" onClick={() => {
+        socketio.emit("give_hint", { token: getToken() });
+    }}>hint</div>);
+}
+
 function UndoButton() {
     return (<div className="undoButton" onClick={() => {
         socketio.emit("undo", { token: getToken() });
@@ -641,7 +655,6 @@ function GameClock({ startTime, endTime, finished }) {
             displayTime = now - startTime;
         }
         else {
-            console.log(endTime, "!=", -1);
             displayTime = endTime - startTime;
         }
         let secs = Math.floor(displayTime / 1000);
@@ -794,6 +807,7 @@ function Screen() {
         <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}
                     finished={finished} resetFn={resetFn}/>
         <CheckButton gameState={gameState}/>
+        <HintButton />
         <UndoButton />
         <RedoButton />
         <GameClock startTime={starttime} endTime={endtime} finished={finished} />

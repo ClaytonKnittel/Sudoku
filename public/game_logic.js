@@ -1,15 +1,21 @@
 
 
+function initTile() {
+    return {
+        val: 0,
+        pencils: 0,
+        possibles: 0,
+        given: false,
+        user_color: -1,
+        // to be set when this tile is given as a hint
+        hinted: false
+    }
+}
+
 function initGameState() {
     let arr = [];
     for (let i = 0; i < 81; i++) {
-        arr.push({
-            val: 0,
-            pencils: 0,
-            possibles: 0,
-            given: false,
-            user_color: -1
-        });
+        arr.push(initTile());
     }
     return arr;
 }
@@ -26,7 +32,7 @@ function copyGameState(oldState) {
 function wellFormed(tileState) {
 	return ('val' in tileState) && ('pencils' in tileState) &&
 		   ('possibles' in tileState) && ('given' in tileState) &&
-		   ('user_color' in tileState);
+		   ('user_color' in tileState) && ('hinted' in tileState);
 }
 
 function gameStatesEqual(s1, s2) {
@@ -40,7 +46,7 @@ function gameStatesEqual(s1, s2) {
 
 		if (s1.val != s2.val || s1.pencils != s2.pencils ||
 				s1.possibles != s2.possibles || s1.given != s2.given ||
-				s1.user_color != s2.user_color) {
+				s1.user_color != s2.user_color || s1.hinted != s2.hinted) {
 			return false;
 		}
 	}
@@ -171,18 +177,29 @@ function checkState(gameState) {
     return RIGHT;
 }
 
+// check if we have game over
+function checkGameOver(gameState) {
+    return checkState(gameState) == RIGHT;
+}
 
-exports.initGameState = initGameState;
-exports.copyGameState = copyGameState;
-exports.gameStatesEqual = gameStatesEqual;
-exports.deleteAllSelected = deleteAllSelected;
-exports.dupArrayMap = dupArrayMap;
-exports.numSelected = numSelected;
-exports.anyNonGivens = anyNonGivens;
-exports.setGivens = setGivens;
-exports._idx = _idx;
-exports.NOT_DONE = NOT_DONE;
-exports.NOT_RIGHT = NOT_RIGHT;
-exports.RIGHT = RIGHT;
-exports.checkState = checkState;
+
+try {
+    exports.initTile = initTile;
+    exports.initGameState = initGameState;
+    exports.copyGameState = copyGameState;
+    exports.gameStatesEqual = gameStatesEqual;
+    exports.deleteAllSelected = deleteAllSelected;
+    exports.dupArrayMap = dupArrayMap;
+    exports.numSelected = numSelected;
+    exports.anyNonGivens = anyNonGivens;
+    exports.setGivens = setGivens;
+    exports._idx = _idx;
+    exports.NOT_DONE = NOT_DONE;
+    exports.NOT_RIGHT = NOT_RIGHT;
+    exports.RIGHT = RIGHT;
+    exports.checkState = checkState;
+    exports.checkGameOver = checkGameOver;
+} catch (ReferenceError) {
+    // not node.js
+}
 

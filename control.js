@@ -3,8 +3,8 @@ var socketio = require("socket.io"),
 
 const { assert } = require("console");
 
-const { initGameState, copyGameState, gameStatesEqual, setGivens, _idx } = require('./public/game_logic');
-const { NO_SOLUTIONS, NO_UNIQUE_SOLUTION, solveGame } = require('./game_solver');
+const { initGameState, copyGameState, gameStatesEqual, setGivens, _idx, checkGameOver } = require('./public/game_logic');
+const { NO_SOLUTIONS, NO_UNIQUE_SOLUTION, solveGame, findHint } = require('./game_solver');
 
 
 var io;
@@ -198,6 +198,19 @@ function init(app) {
             if (!g_users.has(token)) {
                 return;
             }
+
+            let tile_idx = findHint(g_current_state);
+            // mark both current state and state in history as hinted
+            g_current_state[tile_idx].hinted = true;
+            g_history[g_history_idx][tile_idx].hinted = true;
+            io.sockets.emit("update", {
+                gameState: g_current_state,
+                state: g_mode,
+                selected: g_selected,
+                starttime: g_starttime,
+                endtime: g_endtime,
+                finished: g_finished
+            });
         });
 
         socket.on("reset", (data) => {
@@ -244,68 +257,21 @@ function update_g_state(new_state, user) {
 		let s2 = new_state[i];
 
 		if ((s1.val != s2.val || s1.pencils != s2.pencils ||
-			s1.possibles != s2.possibles || s1.user_color != s2.user_color)
+            s1.possibles != s2.possibles || s1.user_color != s2.user_color ||
+            s1.hinted != s2.hinted)
 				&& (!s1.given || s2.given)) {
 
 			s1.val = s2.val;
 			s1.pencils = s2.pencils;
 			s1.possibles = s2.possibles;
 			s1.given = s2.given;
-			s1.user_color = user.color;
+            s1.user_color = user.color;
+            // you can un-hint a tile, but you can't make it a hint if it wasn't one
+            s1.hinted = s1.hinted && s2.hinted;
 			changed = true;
 		}
 	}
 	return changed;
-}
-
-// check if we have game over
-function checkGameOver(gameState) {
-    // check rows
-    for (let r = 0; r < 9; r++) {
-        let m = 0;
-        for (let c = 0; c < 9; c++) {
-            let val = gameState[_idx(r, c)].val;
-            if (val == 0) {
-                return false;
-            }
-            m |= (1 << (val - 1));
-        }
-        if (m != 511) {
-            return false;
-        }
-    }
-    // check cols
-    for (let c = 0; c < 9; c++) {
-        let m = 0;
-        for (let r = 0; r < 9; r++) {
-            let val = gameState[_idx(r, c)].val;
-            if (val == 0) {
-                return false;
-            }
-            m |= (1 << (val - 1));
-        }
-        if (m != 511) {
-            return false;
-        }
-    }
-    // check boxes
-    for (let b = 0; b < 9; b++) {
-        let m = 0;
-        for (let i = 0; i < 9; i++) {
-            let r = Math.floor(b / 3) * 3 + Math.floor(i / 3);
-            let c = (b % 3) * 3 + (i % 3);
-
-            let val = gameState[_idx(r, c)].val;
-            if (val == 0) {
-                return false;
-            }
-            m |= (1 << (val - 1));
-        }
-        if (m != 511) {
-            return false;
-        }
-    }
-    return true;
 }
 
 
@@ -340,22 +306,6 @@ function update_game(socket, data) {
 		else if (data.state === 1 && g_mode === 0) {
 			g_starttime = new Date().getTime();
 
-			// for (let i = 0; i < 9; i++) {
-			// 	g_current_state[_idx(i, 0)].val = i + 1;
-			// 	g_current_state[_idx((i + 6) % 9, 1)].val = i + 1;
-			// 	g_current_state[_idx((i + 3) % 9, 2)].val = i + 1;
-			// 	g_current_state[_idx((i + 1) % 9, 3)].val = i + 1;
-			// 	g_current_state[_idx((i + 7) % 9, 4)].val = i + 1;
-			// 	g_current_state[_idx((i + 4) % 9, 5)].val = i + 1;
-			// 	g_current_state[_idx((i + 2) % 9, 6)].val = i + 1;
-			// 	g_current_state[_idx((i + 8) % 9, 7)].val = i + 1;
-
-			// 	for (let c = 0; c < 8; c++) {
-			// 		g_current_state[_idx(i, c)].user_color = 0;
-			// 		g_current_state[_idx(i, c)].given = true;
-			// 	}
-			// }
-
 			solveGame(g_current_state).then((res) => {
 				if (res === NO_SOLUTIONS) {
 					io.sockets.emit("no_solutions", {});
@@ -386,7 +336,7 @@ function update_game(socket, data) {
 		if (!gameStatesEqual(old_state, g_current_state)) {
 			// conflict! for now just return current global state
 			new_state = g_current_state;
-			changed = false;
+            changed = false;
 		}
 
 		if (changed) {

@@ -5,6 +5,56 @@ const NO_SOLUTIONS = 0;
 const NO_UNIQUE_SOLUTION = 1;
 
 
+function initializeEasyGame(gameState) {
+	gameState[2].val = 3;
+	gameState[4].val = 2;
+	gameState[6].val = 7;
+	gameState[8].val = 5;
+
+	gameState[9].val = 7;
+	gameState[14].val = 1;
+
+	gameState[18].val = 2;
+	gameState[25].val = 6;
+
+	gameState[28].val = 9;
+	gameState[33].val = 3;
+
+	gameState[37].val = 2;
+	gameState[41].val = 4;
+
+	gameState[45].val = 1;
+	gameState[49].val = 3;
+	gameState[50].val = 8;
+
+	gameState[57].val = 8;
+
+	gameState[63].val = 2;
+	gameState[65].val = 6;
+	gameState[66].val = 9;
+	gameState[68].val = 3;
+
+	gameState[72].val = 5;
+	gameState[74].val = 1;
+	gameState[76].val = 7;
+	gameState[80].val = 6;
+}
+
+function createSolverState(gameState) {
+    let arr = [];
+	for (let r = 0; r < 9; r++) {
+		for (let c = 0; c < 9; c++) {
+			let val = gameState[_idx(r, c)].val;
+			if (val == 0) {
+				val = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+			}
+			arr.push(val);
+		}
+	}
+    return arr;
+}
+
+
 function tileIsResolved(tile) {
 	return !Array.isArray(tile);
 }
@@ -250,58 +300,22 @@ function findSoln(arr) {
 }
 
 async function solveGame(gameState) {
-	// gameState[2].val = 3;
-	// gameState[4].val = 2;
-	// gameState[6].val = 7;
-	// gameState[8].val = 5;
-
-	// gameState[9].val = 7;
-	// gameState[14].val = 1;
-
-	// gameState[18].val = 2;
-	// gameState[25].val = 6;
-
-	// gameState[28].val = 9;
-	// gameState[33].val = 3;
-
-	// gameState[37].val = 2;
-	// gameState[41].val = 4;
-
-	// gameState[45].val = 1;
-	// gameState[49].val = 3;
-	// gameState[50].val = 8;
-
-	// gameState[57].val = 8;
-
-	// gameState[63].val = 2;
-	// gameState[65].val = 6;
-	// gameState[66].val = 9;
-	// gameState[68].val = 3;
-
-	// gameState[72].val = 5;
-	// gameState[74].val = 1;
-	// gameState[76].val = 7;
-	// gameState[80].val = 6;
-
-
-	let arr = [];
-	for (let r = 0; r < 9; r++) {
-		for (let c = 0; c < 9; c++) {
-			let val = gameState[_idx(r, c)].val;
-			if (val == 0) {
-				val = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-			}
-			arr.push(val);
-		}
-	}
-
+    let arr = createSolverState(gameState);
 	return findSoln(arr);
 }
+
+
+function findHint(gameState) {
+    let rar = createSolverState(gameState);
+    return 0;
+}
+
 
 exports.NO_SOLUTIONS = NO_SOLUTIONS;
 exports.NO_UNIQUE_SOLUTION = NO_UNIQUE_SOLUTION;
 exports._idx = _idx;
 exports.solveGame = solveGame;
+exports.findHint = findHint;
 
 module.exports = exports;
 
