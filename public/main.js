@@ -250,6 +250,29 @@ function deleteAllSelected(selected, user_color) {
     }
 }
 
+
+function dupArrayMap(am) {
+    let dup = {};
+    for (const [key, val] of Object.entries(am)) {
+        dup[key] = [...val];
+    }
+    return dup;
+}
+
+/*
+ * returns the number of tiles this user has selected
+ */
+function numSelected(selected, user_color) {
+    let cnt = 0;
+    for (const [_, val] of Object.entries(selected)) {
+        val.forEach((col) => {
+            cnt += (col === user_color) ? 1 : 0;
+        });
+    }
+    return cnt;
+}
+
+
 function Sudoku(props) {
     let shiftHeld = React.useRef(false);
 
@@ -262,14 +285,14 @@ function Sudoku(props) {
     let finished = props.finished;
 
     let selectTile = (idx) => {
-        let selectedDup = {...selected};
+        let selectedDup = dupArrayMap(selected);
         let is_in = (idx in selectedDup);
-        let is_in_lis;
+        let is_in_lis = false;
         if (is_in) {
             let user_colors = selectedDup[idx];
             is_in_lis = false;
             user_colors.forEach((user_color) => {
-                is_in_lis = is_in_lis && (user_color === props.user_color);
+                is_in_lis = is_in_lis || (user_color === props.user_color);
             });
         }
         if (is_in_lis) {
@@ -284,7 +307,7 @@ function Sudoku(props) {
         if (!shiftHeld.current) {
             deleteAllSelected(selectedDup, props.user_color);
         }
-        if (!is_in_lis) {
+        if (!is_in_lis || (!shiftHeld.current && numSelected(selected, props.user_color) > 1)) {
             if (!(idx in selectedDup)) {
                 selectedDup[idx] = [props.user_color];
             }
