@@ -176,8 +176,16 @@ function Tile(props) {
         };
     }
 
+    React.useEffect(() => {
+        window.addEventListener('mousemove', (event) => {
+            if (document.getElementById(`tile_${props.idx}`).contains(event.target)) {
+                props.drag.current(props.idx);
+            }
+        });
+    }, []);
+
     return (
-        <span className={`tile ${empty ? ' empty' : ''}`} style={sel_style} onClick={() => {
+        <span id={`tile_${props.idx}`} className={`tile ${empty ? ' empty' : ''}`} style={sel_style} onMouseDown={() => {
                 setSelected(props.idx);
             }}>
             <div className={`number_cell${empty ? '' : ' nonempty'}${given ? ' given' : (val !== 0 ? ' guess' : '')}`}>
@@ -196,21 +204,21 @@ function Box(props) {
     let sel = props.selected;
     return (<div className='box'>
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 0} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 1} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 2} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 0} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
+            <Tile val='0' state={props.state} idx={idx_off + 1} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
+            <Tile val='0' state={props.state} idx={idx_off + 2} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
         </div>
 
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 3} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 4} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 5} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 3} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
+            <Tile val='0' state={props.state} idx={idx_off + 4} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
+            <Tile val='0' state={props.state} idx={idx_off + 5} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
         </div>
 
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 6} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 7} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
-            <Tile val='0' state={props.state} idx={idx_off + 8} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all}></Tile>
+            <Tile val='0' state={props.state} idx={idx_off + 6} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
+            <Tile val='0' state={props.state} idx={idx_off + 7} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
+            <Tile val='0' state={props.state} idx={idx_off + 8} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
         </div>
     </div>);
 }
@@ -275,6 +283,8 @@ function numSelected(selected, user_color) {
 
 function Sudoku(props) {
     let shiftHeld = React.useRef(false);
+    let mouseHeld = React.useRef(false);
+    let mouseDragCb = React.useRef(() => {});
 
     let gameState = props.gameState;
     let setGameState = props.setGameState;
@@ -317,6 +327,32 @@ function Sudoku(props) {
         }
 
         setSelected(selectedDup);
+    };
+
+    mouseDragCb.current = (idx) => {
+        if (!mouseHeld.current) {
+            return;
+        }
+        let is_in = (idx in selected);
+        if (is_in) {
+            let user_colors = selected[idx];
+            let is_in_lis = false;
+            user_colors.forEach((user_color) => {
+                is_in_lis = is_in_lis || (user_color === props.user_color);
+            });
+            if (!is_in_lis) {
+                let selectedDup = dupArrayMap(selected);
+                // only add to the list if it wasn't already in there
+                selectedDup[idx].push(props.user_color);
+                setSelected(selectedDup);
+            }
+        }
+        else {
+            let selectedDup = dupArrayMap(selected);
+            selectedDup[idx] = [props.user_color];
+            setSelected(selectedDup);
+        }
+
     };
 
     let new_key_cb = (e) => {
@@ -463,9 +499,20 @@ function Sudoku(props) {
     document.addEventListener('keyup', new_keyup_cb);
     g_keyup_callback = new_keyup_cb;
 
-    window.removeEventListener('click', g_click_outside);
-    window.addEventListener('click', click_outside);
+    window.removeEventListener('mousedown', g_click_outside);
+    window.addEventListener('mousedown', click_outside);
     g_click_outside = click_outside;
+
+
+    React.useEffect(() => {
+        window.addEventListener('mousedown', (event) => {
+            mouseHeld.current = true;
+        });
+
+        window.addEventListener('mouseup', (event) => {
+            mouseHeld.current = false;
+        });
+    }, []);
 
     // highlight clicked tiles
     let clicked_tile = -1;
@@ -483,21 +530,21 @@ function Sudoku(props) {
 
     return (<div id='board' className='board'>
         <div className='board-row'>
-            <Box state={props.state} idx_off={0}  gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
-            <Box state={props.state} idx_off={9}  gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
-            <Box state={props.state} idx_off={18} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
+            <Box state={props.state} idx_off={0}  gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
+            <Box state={props.state} idx_off={9}  gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
+            <Box state={props.state} idx_off={18} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
         </div>
 
         <div className='board-row'>
-            <Box state={props.state} idx_off={27} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
-            <Box state={props.state} idx_off={36} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
-            <Box state={props.state} idx_off={45} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
+            <Box state={props.state} idx_off={27} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
+            <Box state={props.state} idx_off={36} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
+            <Box state={props.state} idx_off={45} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
         </div>
 
         <div className='board-row'>
-            <Box state={props.state} idx_off={54} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
-            <Box state={props.state} idx_off={63} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
-            <Box state={props.state} idx_off={72} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} />
+            <Box state={props.state} idx_off={54} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
+            <Box state={props.state} idx_off={63} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
+            <Box state={props.state} idx_off={72} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
         </div>
     </div>);
 }
