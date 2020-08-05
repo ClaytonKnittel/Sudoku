@@ -22,6 +22,32 @@ function copyGameState(oldState) {
     return newState;
 }
 
+
+function wellFormed(tileState) {
+	return ('val' in tileState) && ('pencils' in tileState) &&
+		   ('possibles' in tileState) && ('given' in tileState) &&
+		   ('user_color' in tileState);
+}
+
+function gameStatesEqual(s1, s2) {
+	if (s1.length !== s2.length) {
+		return false;
+	}
+	for (let i = 0; i < s1.length; i++) {
+		if (!wellFormed(s1[i]) || !wellFormed(s2[i])) {
+			return false;
+		}
+
+		if (s1.val != s2.val || s1.pencils != s2.pencils ||
+				s1.possibles != s2.possibles || s1.given != s2.given ||
+				s1.user_color != s2.user_color) {
+			return false;
+		}
+	}
+	return true;
+}
+
+
 function deleteAllSelected(selected, user_color) {
     for (const idx in selected) {
         let user_colors = selected[idx];
@@ -148,6 +174,7 @@ function checkState(gameState) {
 
 exports.initGameState = initGameState;
 exports.copyGameState = copyGameState;
+exports.gameStatesEqual = gameStatesEqual;
 exports.deleteAllSelected = deleteAllSelected;
 exports.dupArrayMap = dupArrayMap;
 exports.numSelected = numSelected;
