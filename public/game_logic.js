@@ -187,6 +187,7 @@ try {
     exports.initTile = initTile;
     exports.initGameState = initGameState;
     exports.copyGameState = copyGameState;
+    exports.wellFormed = wellFormed;
     exports.gameStatesEqual = gameStatesEqual;
     exports.deleteAllSelected = deleteAllSelected;
     exports.dupArrayMap = dupArrayMap;

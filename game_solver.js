@@ -306,6 +306,7 @@ async function solveGame(gameState) {
 
 
 function findHint(gameState) {
+    // TODO this
     let rar = createSolverState(gameState);
     return 0;
 }

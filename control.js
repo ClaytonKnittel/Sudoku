@@ -3,7 +3,7 @@ var socketio = require("socket.io"),
 
 const { assert } = require("console");
 
-const { initGameState, copyGameState, gameStatesEqual, setGivens, _idx, checkGameOver } = require('./public/game_logic');
+const { initGameState, copyGameState, wellFormed, setGivens, _idx, checkGameOver } = require('./public/game_logic');
 const { NO_SOLUTIONS, NO_UNIQUE_SOLUTION, solveGame, findHint } = require('./game_solver');
 
 
@@ -199,6 +199,11 @@ function init(app) {
                 return;
             }
 
+            if (g_mode !== 1) {
+                // only allow hints once the game has started
+                return;
+            }
+
             let tile_idx = findHint(g_current_state);
             // mark both current state and state in history as hinted
             g_current_state[tile_idx].hinted = true;
@@ -250,28 +255,25 @@ function init(app) {
 }
 
 
-function update_g_state(new_state, user) {
-	let changed = false;
-	for (let i = 0; i < g_current_state.length; i++) {
-		let s1 = g_current_state[i];
-		let s2 = new_state[i];
+function updateTile(new_state, idx, user) {
+    let s1 = g_current_state[idx];
+    let s2 = new_state[idx];
+    
+    if ((s1.val != s2.val || s1.pencils != s2.pencils ||
+        s1.possibles != s2.possibles || s1.user_color != s2.user_color ||
+        s1.hinted != s2.hinted)
+            && (!s1.given || s2.given)) {
 
-		if ((s1.val != s2.val || s1.pencils != s2.pencils ||
-            s1.possibles != s2.possibles || s1.user_color != s2.user_color ||
-            s1.hinted != s2.hinted)
-				&& (!s1.given || s2.given)) {
-
-			s1.val = s2.val;
-			s1.pencils = s2.pencils;
-			s1.possibles = s2.possibles;
-			s1.given = s2.given;
-            s1.user_color = user.color;
-            // you can un-hint a tile, but you can't make it a hint if it wasn't one
-            s1.hinted = s1.hinted && s2.hinted;
-			changed = true;
-		}
-	}
-	return changed;
+        s1.val = s2.val;
+        s1.pencils = s2.pencils;
+        s1.possibles = s2.possibles;
+        s1.given = s2.given;
+        s1.user_color = user.color;
+        // you can un-hint a tile, but you can't make it a hint if it wasn't one
+        s1.hinted = s1.hinted && s2.hinted;
+        return true;
+    }
+    return false;
 }
 
 
@@ -327,20 +329,31 @@ function update_game(socket, data) {
 	if (("old_state" in data) && ("new_state" in data)) {
 		let old_state = data.old_state;
 		let new_state = data.new_state;
-		let changed = true;
+		let changed = false;
 
-		if (g_finished) {
 			// don't allow changes once the game has finished
-			changed = false;
-		}
-		if (!gameStatesEqual(old_state, g_current_state)) {
-			// conflict! for now just return current global state
-			new_state = g_current_state;
-            changed = false;
+		if (!g_finished && old_state.length === 81) {
+            // go through and only accept changes to cells which match
+            // in g_current_state and old_state
+            for (let i = 0; i < 81; i++) {
+                if (!wellFormed(old_state[i])) {
+                    // skip malformed tiles
+                    continue;
+                }
+        
+                if (old_state.val === g_current_state.val &&
+                        old_state.pencils === g_current_state.pencils &&
+                        old_state.possibles === g_current_state.possibles &&
+                        old_state.given === g_current_state.given &&
+                        old_state.user_color === g_current_state.user_color &&
+                        old_state.hinted === g_current_state.hinted) {
+
+                    changed = updateTile(new_state, i, user) || changed;
+                }
+            }
 		}
 
 		if (changed) {
-			changed = update_g_state(new_state, user);
 			if (g_mode === 1 && !g_finished) {
 				g_finished = checkGameOver(g_current_state);
 				if (g_finished) {
@@ -348,7 +361,7 @@ function update_game(socket, data) {
 				}
 			}
 
-			if (g_mode === 1 && changed) {
+			if (g_mode === 1) {
 				// append to history
 				if (g_history_idx === g_history.length - 1) {
 					g_history.push(copyGameState(g_current_state));
