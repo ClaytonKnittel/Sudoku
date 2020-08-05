@@ -37,7 +37,11 @@ function initializeEasyGame(gameState) {
 	gameState[72].val = 5;
 	gameState[74].val = 1;
 	gameState[76].val = 7;
-	gameState[80].val = 6;
+    gameState[80].val = 6;
+    
+    gameState.forEach((tile) => {
+        if (tile.val) tile.given = true;
+    });
 }
 
 function createSolverState(gameState) {
@@ -300,14 +304,16 @@ function findSoln(arr) {
 }
 
 async function solveGame(gameState) {
+    initializeEasyGame(gameState);
     let arr = createSolverState(gameState);
-	return findSoln(arr);
+    let soln = findSoln(arr);
+    return soln;
 }
 
 
 function findHint(gameState) {
-    // TODO this
-    let rar = createSolverState(gameState);
+    let arr = createSolverState(gameState);
+
     return 0;
 }
 

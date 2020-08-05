@@ -199,8 +199,8 @@ function init(app) {
                 return;
             }
 
-            if (g_mode !== 1) {
-                // only allow hints once the game has started
+            if (g_mode !== 1 || g_finished) {
+                // only allow hints once the game has started/not ended
                 return;
             }
 
@@ -262,7 +262,7 @@ function updateTile(new_state, idx, user) {
     if ((s1.val != s2.val || s1.pencils != s2.pencils ||
         s1.possibles != s2.possibles || s1.user_color != s2.user_color ||
         s1.hinted != s2.hinted)
-            && (!s1.given || s2.given)) {
+            && !s1.given) {
 
         s1.val = s2.val;
         s1.pencils = s2.pencils;

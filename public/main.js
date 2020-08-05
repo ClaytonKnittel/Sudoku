@@ -641,7 +641,9 @@ function GameClock({ startTime, endTime, finished }) {
     let now = new Date().getTime();
     let [force, setForce] = React.useState(0);
 
-    let style = {};
+    let style = {
+        fontSize: "30px"
+    };
     if (finished) {
         style.color = "green";
     }
