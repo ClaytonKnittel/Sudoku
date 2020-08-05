@@ -738,6 +738,18 @@ function CheckButton({ gameState }) {
     </div>);
 }
 
+function UndoButton() {
+    return (<div className="undoButton" onClick={() => {
+        socketio.emit("undo", { token: getToken() });
+    }}>undo</div>);
+}
+
+function RedoButton() {
+    return (<div className="redoButton" onClick={() => {
+        socketio.emit("redo", { token: getToken() });
+    }}>redo</div>);
+}
+
 function GameClock({ startTime, endTime, finished }) {
     let now = new Date().getTime();
     let [force, setForce] = React.useState(0);
@@ -912,6 +924,8 @@ function Screen() {
         <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}
                     finished={finished} resetFn={resetFn}/>
         <CheckButton gameState={gameState}/>
+        <UndoButton />
+        <RedoButton />
         <GameClock startTime={starttime} endTime={endtime} finished={finished} />
         <Ctrl state={state} beginGame={beginGame} mode={mode} setMode={setMode}/>
     </div>);

@@ -7,7 +7,7 @@ var http = require("http"),
 	crypto = require("crypto");
 const { resolve } = require("path");
 const { isNullOrUndefined } = require("util");
-const { timeEnd } = require("console");
+const { timeEnd, assert } = require("console");
 
 let port = 80;
 
@@ -91,6 +91,28 @@ function gameStatesEqual(s1, s2) {
 	}
 	return true;
 }
+
+function copyGameState(oldState) {
+    let newState = [];
+    oldState.forEach((tileState) => {
+        newState.push({...tileState});
+    })
+    return newState;
+}
+
+// set every tile as given
+function setGivens(gameState) {
+    let gsc = copyGameState(gameState);
+    // go through setGivenList and make all tiles givens
+    gsc.forEach((tileState) => {
+        if (tileState.val != 0) {
+            tileState.given = true;
+            tileState.user_color = -1;
+        }
+    });
+    return gsc;
+}
+
 
 
 
@@ -408,6 +430,9 @@ let g_selected = {};
 let g_starttime = -1;
 let g_endtime = -1;
 
+let g_history_idx = 0;
+let g_history = [];
+
 // map from tokens to user objects
 let g_users = new Map();
 let g_socket_id_to_tokens = new Map();
@@ -516,6 +541,64 @@ io.sockets.on("connection", function(socket) {
 		verify_cells(socket, data);
 	});
 
+	socket.on("undo", (data) => {
+		if (!("token" in data)) {
+			console.log("bad request", data);
+			return;
+		}
+		let token = data.token;
+	
+		if (!g_users.has(token)) {
+			return;
+		}
+
+		if (g_history_idx === 0) {
+			// can't undo from the 0'th move
+			return;
+		}
+
+		g_history_idx--;
+		g_current_state = copyGameState(g_history[g_history_idx]);
+
+		io.sockets.emit("update", {
+			gameState: g_current_state,
+			state: g_mode,
+			selected: g_selected,
+			starttime: g_starttime,
+			endtime: g_endtime,
+			finished: g_finished
+		});
+	});
+
+	socket.on("redo", (data) => {
+		if (!("token" in data)) {
+			console.log("bad request", data);
+			return;
+		}
+		let token = data.token;
+	
+		if (!g_users.has(token)) {
+			return;
+		}
+
+		if (g_history_idx >= g_history.length - 1) {
+			// can't redo from the most recent move
+			return;
+		}
+
+		g_history_idx++;
+		g_current_state = copyGameState(g_history[g_history_idx]);
+
+		io.sockets.emit("update", {
+			gameState: g_current_state,
+			state: g_mode,
+			selected: g_selected,
+			starttime: g_starttime,
+			endtime: g_endtime,
+			finished: g_finished
+		});
+	});
+
 	socket.on("reset", (data) => {
 		if (!("token" in data)) {
 			console.log("bad request", data);
@@ -526,7 +609,6 @@ io.sockets.on("connection", function(socket) {
 		if (!g_users.has(token)) {
 			return;
 		}
-		console.log("reset", g_finished);
 
 		if (g_finished) {
 			g_current_state = initGameState();
@@ -536,6 +618,8 @@ io.sockets.on("connection", function(socket) {
 			g_selected = {};
 			g_starttime = -1;
 			g_endtime = -1;
+			g_history_idx = 0;
+			g_history = [];
 
 			io.sockets.emit("update", {
 				gameState: g_current_state,
@@ -552,6 +636,7 @@ io.sockets.on("connection", function(socket) {
 
 
 function update_g_state(new_state, user) {
+	let changed = false;
 	for (let i = 0; i < g_current_state.length; i++) {
 		let s1 = g_current_state[i];
 		let s2 = new_state[i];
@@ -565,8 +650,10 @@ function update_g_state(new_state, user) {
 			s1.possibles = s2.possibles;
 			s1.given = s2.given;
 			s1.user_color = user.color;
+			changed = true;
 		}
 	}
+	return changed;
 }
 
 // check if we have game over
@@ -638,6 +725,8 @@ function update_game(socket, data) {
 			g_endtime = -1;
 			g_solution = 0;
 			g_finished = false;
+			g_history_idx = 0;
+			g_history = [];
 
 			if (g_mode === 1) {
 				// unset all givens
@@ -676,23 +765,53 @@ function update_game(socket, data) {
 					g_solution = res;
 				}
 			});
+
+			g_current_state = setGivens(g_current_state);
+			g_history.push(copyGameState(g_current_state));
+			g_history_idx = 0;
 		}
 		g_mode = data.state;
 	}
 	if (("old_state" in data) && ("new_state" in data)) {
 		let old_state = data.old_state;
 		let new_state = data.new_state;
+		let changed = true;
 
-		if (g_finished || !gameStatesEqual(old_state, g_current_state)) {
+		if (g_finished) {
+			// don't allow changes once the game has finished
+			changed = false;
+		}
+		if (!gameStatesEqual(old_state, g_current_state)) {
 			// conflict! for now just return current global state
 			new_state = g_current_state;
+			changed = false;
 		}
 
-		update_g_state(new_state, user);
-		if (g_mode === 1 && !g_finished) {
-			g_finished = checkGameOver(g_current_state);
-			if (g_finished) {
-				g_endtime = new Date().getTime();
+		if (changed) {
+			changed = update_g_state(new_state, user);
+			if (g_mode === 1 && !g_finished) {
+				g_finished = checkGameOver(g_current_state);
+				if (g_finished) {
+					g_endtime = new Date().getTime();
+				}
+			}
+
+			if (g_mode === 1 && changed) {
+				// append to history
+				if (g_history_idx === g_history.length - 1) {
+					g_history.push(copyGameState(g_current_state));
+					g_history_idx++;
+				}
+				else {
+					assert(g_history_idx < g_history.length);
+
+					for (let i = g_history.length - 2; i >= g_history_idx; i--) {
+						// no need to deep copy
+						g_history.push(g_history[i]);
+					}
+					g_history.push(copyGameState(g_current_state));
+					g_history_idx = g_history.length - 1;
+				}
 			}
 		}
 	}
