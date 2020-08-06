@@ -6,40 +6,60 @@ const NO_UNIQUE_SOLUTION = 1;
 
 
 function initializeEasyGame(gameState) {
-	gameState[2].val = 3;
-	gameState[4].val = 2;
-	gameState[6].val = 7;
-	gameState[8].val = 5;
+    for (let i = 0; i < 8; i++) {
+        gameState.board[_idx(i, 0)].val = i + 1;
+        gameState.board[_idx(i, 1)].val = (i + 3) % 9 + 1;
+        gameState.board[_idx(i, 2)].val = (i + 6) % 9 + 1;
 
-	gameState[9].val = 7;
-	gameState[14].val = 1;
+        gameState.board[_idx(i, 3)].val = (i + 1) % 9 + 1;
+        gameState.board[_idx(i, 4)].val = (i + 4) % 9 + 1;
+        gameState.board[_idx(i, 5)].val = (i + 7) % 9 + 1;
 
-	gameState[18].val = 2;
-	gameState[25].val = 6;
+        gameState.board[_idx(i, 6)].val = (i + 2) % 9 + 1;
+        gameState.board[_idx(i, 7)].val = (i + 5) % 9 + 1;
+        gameState.board[_idx(i, 8)].val = (i + 8) % 9 + 1;
+    }
+    gameState.board.forEach((tile) => {
+        if (tile.val) tile.given = true;
+    });
+}
 
-	gameState[28].val = 9;
-	gameState[33].val = 3;
 
-	gameState[37].val = 2;
-	gameState[41].val = 4;
+function initializeHardGame(gameState) {
+	gameState.board[2].val = 3;
+	gameState.board[4].val = 2;
+	gameState.board[6].val = 7;
+	gameState.board[8].val = 5;
 
-	gameState[45].val = 1;
-	gameState[49].val = 3;
-	gameState[50].val = 8;
+	gameState.board[9].val = 7;
+	gameState.board[14].val = 1;
 
-	gameState[57].val = 8;
+	gameState.board[18].val = 2;
+	gameState.board[25].val = 6;
 
-	gameState[63].val = 2;
-	gameState[65].val = 6;
-	gameState[66].val = 9;
-	gameState[68].val = 3;
+	gameState.board[28].val = 9;
+	gameState.board[33].val = 3;
 
-	gameState[72].val = 5;
-	gameState[74].val = 1;
-	gameState[76].val = 7;
-    gameState[80].val = 6;
+	gameState.board[37].val = 2;
+	gameState.board[41].val = 4;
+
+	gameState.board[45].val = 1;
+	gameState.board[49].val = 3;
+	gameState.board[50].val = 8;
+
+	gameState.board[57].val = 8;
+
+	gameState.board[63].val = 2;
+	gameState.board[65].val = 6;
+	gameState.board[66].val = 9;
+	gameState.board[68].val = 3;
+
+	gameState.board[72].val = 5;
+	gameState.board[74].val = 1;
+	gameState.board[76].val = 7;
+    gameState.board[80].val = 6;
     
-    gameState.forEach((tile) => {
+    gameState.board.forEach((tile) => {
         if (tile.val) tile.given = true;
     });
 }
@@ -48,7 +68,7 @@ function createSolverState(gameState) {
     let arr = [];
 	for (let r = 0; r < 9; r++) {
 		for (let c = 0; c < 9; c++) {
-			let val = gameState[_idx(r, c)].val;
+			let val = gameState.board[_idx(r, c)].val;
 			if (val == 0) {
 				val = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 			}
@@ -304,7 +324,7 @@ function findSoln(arr) {
 }
 
 async function solveGame(gameState) {
-    //initializeEasyGame(gameState);
+    initializeEasyGame(gameState);
     let arr = createSolverState(gameState);
     let soln = findSoln(arr);
     return soln;

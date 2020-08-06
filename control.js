@@ -3,9 +3,8 @@ var socketio = require("socket.io"),
 
 const { assert } = require("console");
 
-const { initGameState, copyGameState, wellFormed, setGivens, _idx, checkGameOver } = require('./public/game_logic');
+const { NO_HINT, HINT_LVL1, initGameState, copyGameState, wellFormed, setGivens, _idx, checkGameOver } = require('./public/game_logic');
 const { NO_SOLUTIONS, NO_UNIQUE_SOLUTION, solveGame, findHint } = require('./game_solver');
-const { on } = require("process");
 
 
 var io;
@@ -46,7 +45,6 @@ function addUserObj(socket_id) {
 function init(app) {
     io = socketio.listen(app);
     io.sockets.on("connection", function(socket) {
-
 
         socket.on("disconnect", function() {
             if (!g_socket_id_to_tokens.has(socket.id)) {
@@ -224,8 +222,10 @@ function init(app) {
             else {
                 let g_idx = _idx(Math.floor(tile_idx / 9), tile_idx % 9);
                 // mark both current state and state in history as hinted
-                g_current_state[g_idx].hinted = true;
-                g_history[g_history_idx][g_idx].hinted = true;
+                g_current_state.hint_state = HINT_LVL1;
+                g_current_state.hinted_tile = g_idx;
+                g_history[g_history_idx].hint_state = HINT_LVL1;
+                g_history[g_history_idx].hinted_tile = g_idx;
                 io.sockets.emit("update", {
                     gameState: g_current_state,
                     state: g_mode,
@@ -275,12 +275,11 @@ function init(app) {
 
 
 function updateTile(new_state, idx, user) {
-    let s1 = g_current_state[idx];
-    let s2 = new_state[idx];
+    let s1 = g_current_state.board[idx];
+    let s2 = new_state.board[idx];
     
     if ((s1.val != s2.val || s1.pencils != s2.pencils ||
-        s1.possibles != s2.possibles || s1.user_color != s2.user_color ||
-        s1.hinted != s2.hinted)
+        s1.possibles != s2.possibles || s1.user_color != s2.user_color)
             && !s1.given) {
 
         s1.val = s2.val;
@@ -288,8 +287,6 @@ function updateTile(new_state, idx, user) {
         s1.possibles = s2.possibles;
         s1.given = s2.given;
         s1.user_color = user.color;
-        // you can un-hint a tile, but you can't make it a hint if it wasn't one
-        s1.hinted = s1.hinted && s2.hinted;
         return true;
     }
     return false;
@@ -319,7 +316,7 @@ function update_game(socket, data) {
 
 			if (g_mode === 1) {
 				// unset all givens
-				g_current_state.forEach((tile) => {
+				g_current_state.board.forEach((tile) => {
 					tile.given = false;
 				});
 			}
@@ -348,24 +345,25 @@ function update_game(socket, data) {
 	if (("old_state" in data) && ("new_state" in data)) {
 		let old_state = data.old_state;
 		let new_state = data.new_state;
-		let changed = false;
+        let changed = false;
 
-			// don't allow changes once the game has finished
-		if (!g_finished && old_state.length === 81) {
+		// don't allow changes once the game has finished
+		if (!g_finished && old_state.board.length === 81) {
             // go through and only accept changes to cells which match
             // in g_current_state and old_state
             for (let i = 0; i < 81; i++) {
-                if (!wellFormed(old_state[i])) {
+                let ot = old_state.board[i];
+                if (!wellFormed(ot)) {
                     // skip malformed tiles
                     continue;
                 }
-        
-                if (old_state.val === g_current_state.val &&
-                        old_state.pencils === g_current_state.pencils &&
-                        old_state.possibles === g_current_state.possibles &&
-                        old_state.given === g_current_state.given &&
-                        old_state.user_color === g_current_state.user_color &&
-                        old_state.hinted === g_current_state.hinted) {
+                let gt = g_current_state.board[i];
+
+                if (ot.val === gt.val &&
+                        ot.pencils === gt.pencils &&
+                        ot.possibles === gt.possibles &&
+                        ot.given === gt.given &&
+                        ot.user_color === gt.user_color) {
 
                     changed = updateTile(new_state, i, user) || changed;
                 }
@@ -381,6 +379,9 @@ function update_game(socket, data) {
 			}
 
 			if (g_mode === 1) {
+                g_current_state.hinted_tile = -1;
+                g_current_state.hint_state = NO_HINT;
+
 				// append to history
 				if (g_history_idx === g_history.length - 1) {
 					g_history.push(copyGameState(g_current_state));
@@ -396,7 +397,7 @@ function update_game(socket, data) {
 					g_history.push(copyGameState(g_current_state));
 					g_history_idx = g_history.length - 1;
 				}
-			}
+            }
 		}
 	}
 	if ("selected" in data) {
@@ -451,7 +452,7 @@ function onRightTrack() {
 		let r = Math.floor(i / 9);
 		let c = i % 9;
 
-		let tile = g_current_state[_idx(r, c)];
+		let tile = g_current_state.board[_idx(r, c)];
 		let ans  = g_solution[r * 9 + c];
 
 		if (tile.val !== 0 && ans !== tile.val) {
@@ -482,7 +483,7 @@ function verify_cells(socket, data) {
 		let r = Math.floor(i / 9);
 		let c = i % 9;
 
-		let tile = g_current_state[_idx(r, c)];
+		let tile = g_current_state.board[_idx(r, c)];
 		let ans  = g_solution[r * 9 + c];
 
 		if (tile.val !== 0 && ans !== tile.val) {

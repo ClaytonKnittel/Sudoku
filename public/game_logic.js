@@ -1,4 +1,9 @@
 
+const NO_HINT = 0;
+const HINT_LVL1 = 1;
+const HINT_LVL2 = 2;
+const HINT_LVL3 = 3;
+
 
 function initTile() {
     return {
@@ -6,9 +11,7 @@ function initTile() {
         pencils: 0,
         possibles: 0,
         given: false,
-        user_color: -1,
-        // to be set when this tile is given as a hint
-        hinted: false
+        user_color: -1
     }
 }
 
@@ -17,36 +20,57 @@ function initGameState() {
     for (let i = 0; i < 81; i++) {
         arr.push(initTile());
     }
-    return arr;
+    return {
+        board: arr,
+
+        hint_state: NO_HINT,
+        // to be set to [0-80] when a tile is given as a hint
+        hinted_tile: -1
+    }
 }
 
 function copyGameState(oldState) {
-    let newState = [];
-    oldState.forEach((tileState) => {
-        newState.push({...tileState});
-    })
-    return newState;
+    let newBoard = [];
+    oldState.board.forEach((tileState) => {
+        newBoard.push({...tileState});
+    });
+    let newState = {...oldState};
+    delete newState.board;
+    return {
+        board: newBoard,
+        ...newState
+    };
 }
 
 
 function wellFormed(tileState) {
 	return ('val' in tileState) && ('pencils' in tileState) &&
 		   ('possibles' in tileState) && ('given' in tileState) &&
-		   ('user_color' in tileState) && ('hinted' in tileState);
+		   ('user_color' in tileState);
 }
 
 function gameStatesEqual(s1, s2) {
-	if (s1.length !== s2.length) {
+    if (!("board" in s1) || !("hinted_tile" in s1) || !("hint_state" in s1) ||
+            !("board" in s1) || !("hinted_tile" in s1) || !("hint_state" in s1)) {
+        return false;
+    }
+	if (s1.board.length !== s2.board.length) {
 		return false;
-	}
-	for (let i = 0; i < s1.length; i++) {
-		if (!wellFormed(s1[i]) || !wellFormed(s2[i])) {
-			return false;
-		}
+    }
+    if (s1.hint_state !== s2.hint_state || s1.hinted_tile !== s2.hinted_tile) {
+        return false;
+    }
+	for (let i = 0; i < s1.board.length; i++) {
+        let t1 = s1.board[i];
+        let t2 = s2.board[i];
 
-		if (s1.val != s2.val || s1.pencils != s2.pencils ||
-				s1.possibles != s2.possibles || s1.given != s2.given ||
-				s1.user_color != s2.user_color || s1.hinted != s2.hinted) {
+		if (!wellFormed(t1) || !wellFormed(t2)) {
+			return false;
+        }
+
+		if (t1.val != t2.val || t1.pencils != t2.pencils ||
+				t1.possibles != t2.possibles || t1.given != t2.given ||
+				t1.user_color != t2.user_color) {
 			return false;
 		}
 	}
@@ -92,8 +116,8 @@ function numSelected(selected, user_color) {
 
 function anyNonGivens(state) {
     let changes = false;
-    for (let i = 0; i < state.length; i++) {
-        let tileState = state[i];
+    for (let i = 0; i < state.board.length; i++) {
+        let tileState = state.board[i];
         if (!(tileState.given)) {
             changes = (changes || (tileState.val != 0 || tileState.pencils != 0 || tileState.possibles != 0));
         }
@@ -105,7 +129,7 @@ function anyNonGivens(state) {
 function setGivens(gameState) {
     let gsc = copyGameState(gameState);
     // go through setGivenList and make all tiles givens
-    gsc.forEach((tileState) => {
+    gsc.board.forEach((tileState) => {
         if (tileState.val != 0) {
             tileState.given = true;
             tileState.user_color = -1;
@@ -137,11 +161,12 @@ const RIGHT = 3;
 
 
 function checkState(gameState) {
+    let gameBoard = gameState.board;
     // check rows
     for (let r = 0; r < 9; r++) {
         let m = 0;
         for (let c = 0; c < 9; c++) {
-            let val = gameState[_idx(r, c)].val;
+            let val = gameBoard[_idx(r, c)].val;
             if (val == 0) {
                 return NOT_DONE;
             }
@@ -155,7 +180,7 @@ function checkState(gameState) {
     for (let c = 0; c < 9; c++) {
         let m = 0;
         for (let r = 0; r < 9; r++) {
-            let val = gameState[_idx(r, c)].val;
+            let val = gameBoard[_idx(r, c)].val;
             if (val == 0) {
                 return NOT_DONE;
             }
@@ -172,7 +197,7 @@ function checkState(gameState) {
             let r = Math.floor(b / 3) * 3 + Math.floor(i / 3);
             let c = (b % 3) * 3 + (i % 3);
 
-            let val = gameState[_idx(r, c)].val;
+            let val = gameBoard[_idx(r, c)].val;
             if (val == 0) {
                 return NOT_DONE;
             }
@@ -192,6 +217,10 @@ function checkGameOver(gameState) {
 
 
 try {
+    exports.NO_HINT = NO_HINT,
+    exports.HINT_LVL1 = HINT_LVL1,
+    exports.HINT_LVL2 = HINT_LVL2,
+    exports.HINT_LVL3 = HINT_LVL3,
     exports.initTile = initTile;
     exports.initGameState = initGameState;
     exports.copyGameState = copyGameState;

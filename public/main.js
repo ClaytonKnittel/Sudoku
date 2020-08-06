@@ -144,7 +144,7 @@ function Possibles(props) {
 
 
 function Tile(props) {
-    let state = props.gameState[props.idx];
+    let state = props.gameState.board[props.idx];
 
     let val = state.val;
     let incorrect = (val < 0);
@@ -168,7 +168,7 @@ function Tile(props) {
             cols.push(user_colors[idx].selected_color);
         });
     }
-    if (state.hinted) {
+    if (props.gameState.hinted_tile === props.idx) {
         cols.push(hinted_color);
     }
     if (cols.length > 0) {
@@ -380,8 +380,8 @@ function Sudoku(props) {
         if (e.key === "Backspace") {
             for (const idx in selected) {
                 let user_colors = selected[idx];
-                if (user_colors == props.user_color && !newState[idx].given) {
-                    newState[idx].val = 0;
+                if (user_colors == props.user_color && !newState.board[idx].given) {
+                    newState.board[idx].val = 0;
                 }
             }
             setGameState(newState);
@@ -401,8 +401,8 @@ function Sudoku(props) {
             all_on = true;
             for (const idx in selected) {
                 let user_colors = selected[idx];
-                if (user_colors.includes(props.user_color) && !newState[idx].given) {
-                    all_on = all_on && (newState[idx].val == num);
+                if (user_colors.includes(props.user_color) && !newState.board[idx].given) {
+                    all_on = all_on && (newState.board[idx].val == num);
                 }
             }
             if (all_on) {
@@ -411,8 +411,8 @@ function Sudoku(props) {
             for (const idx in selected) {
                 let user_colors = selected[idx];
                 if (user_colors.includes(props.user_color)) {
-                    newState[idx].val = num;
-                    newState[idx].user_color = props.user_color;
+                    newState.board[idx].val = num;
+                    newState.board[idx].user_color = props.user_color;
                 }
             }
             setGameState(newState);
@@ -423,8 +423,8 @@ function Sudoku(props) {
                     all_on = true;
                     for (const idx in selected) {
                         let user_colors = selected[idx];
-                        if (user_colors.includes(props.user_color) && !newState[idx].given) {
-                            all_on = all_on && (newState[idx].val == num);
+                        if (user_colors.includes(props.user_color) && !newState.board[idx].given) {
+                            all_on = all_on && (newState.board[idx].val == num);
                         }
                     }
                     if (all_on) {
@@ -432,34 +432,33 @@ function Sudoku(props) {
                     }
                     for (const idx in selected) {
                         let user_colors = selected[idx];
-                        if (user_colors.includes(props.user_color) && !newState[idx].given) {
-                            newState[idx].val = num;
-                            newState[idx].user_color = props.user_color;
+                        if (user_colors.includes(props.user_color) && !newState.board[idx].given) {
+                            newState.board[idx].val = num;
+                            newState.board[idx].user_color = props.user_color;
                         }
                     }
-                    // check if any cells are hinted
-                    newState.forEach((tile, idx) => {
-                        tile.hinted = false;
-                    });
+                    // get rid of the hint
+                    newState.hinted_tile = -1;
+                    newState.hint_level = NO_HINT;
                     break;
                 case 1:
                     all_on = true;
                     for (const idx in selected) {
                         let user_colors = selected[idx];
-                        if (user_colors.includes(props.user_color) && !newState[idx].given) {
-                            all_on = all_on && ((newState[idx].pencils & (1 << (num - 1))) != 0);
+                        if (user_colors.includes(props.user_color) && !newState.board[idx].given) {
+                            all_on = all_on && ((newState.board[idx].pencils & (1 << (num - 1))) != 0);
                         }
                     }
                     for (const idx in selected) {
                         let user_colors = selected[idx];
-                        if (user_colors.includes(props.user_color) && !newState[idx].given) {
+                        if (user_colors.includes(props.user_color) && !newState.board[idx].given) {
                             if (all_on) {
-                                newState[idx].pencils &= ~(1 << (num - 1));
-                                newState[idx].user_color = props.user_color;
+                                newState.board[idx].pencils &= ~(1 << (num - 1));
+                                newState.board[idx].user_color = props.user_color;
                             }
                             else {
-                                newState[idx].pencils |= (1 << (num - 1));
-                                newState[idx].user_color = props.user_color;
+                                newState.board[idx].pencils |= (1 << (num - 1));
+                                newState.board[idx].user_color = props.user_color;
                             }
                         }
                     }
@@ -468,20 +467,20 @@ function Sudoku(props) {
                     all_on = true;
                     for (const idx in selected) {
                         let user_colors = selected[idx];
-                        if (user_colors.includes(props.user_color) && !newState[idx].given) {
-                            all_on = all_on && ((newState[idx].possibles & (1 << (num - 1))) != 0);
+                        if (user_colors.includes(props.user_color) && !newState.board[idx].given) {
+                            all_on = all_on && ((newState.board[idx].possibles & (1 << (num - 1))) != 0);
                         }
                     }
                     for (const idx in selected) {
                         let user_colors = selected[idx];
-                        if (user_colors.includes(props.user_color) && !newState[idx].given) {
+                        if (user_colors.includes(props.user_color) && !newState.board[idx].given) {
                             if (all_on) {
-                                newState[idx].possibles &= ~(1 << (num - 1));
-                                newState[idx].user_color = props.user_color;
+                                newState.board[idx].possibles &= ~(1 << (num - 1));
+                                newState.board[idx].user_color = props.user_color;
                             }
                             else {
-                                newState[idx].possibles |= (1 << (num - 1));
-                                newState[idx].user_color = props.user_color;
+                                newState.board[idx].possibles |= (1 << (num - 1));
+                                newState.board[idx].user_color = props.user_color;
                             }
                         }
                     }
@@ -540,8 +539,8 @@ function Sudoku(props) {
         }
     }
 
-    if (clicked_tile >= 0 && gameState[clicked_tile].val != 0) {
-        highlight_all = gameState[clicked_tile].val;
+    if (clicked_tile >= 0 && gameState.board[clicked_tile].val != 0) {
+        highlight_all = gameState.board[clicked_tile].val;
     }
 
     return (<div id='board' className={`board${props.finished ? ' animate_rainbow' : ''}`}>
@@ -613,18 +612,18 @@ function clearState(gameState, setGameState, setBoth, finished, resetFn) {
     else if (!anyNonGivens(gameState)) {
         // set all givens back to non-givens
         state = copyGameState(gameState);
-        for (let i = 0; i < state.length; i++) {
-            let tileState = state[i];
+        for (let i = 0; i < state.board.length; i++) {
+            let tileState = state.board[i];
             tileState.given = false;
         }
         setBoth(0, state);
     }
     else {
         state = copyGameState(gameState);
-        for (let i = 0; i < state.length; i++) {
-            let tileState = state[i];
+        for (let i = 0; i < state.board.length; i++) {
+            let tileState = state.board[i];
             if (!(tileState.given)) {
-                state[i] = initTile();
+                state.board[i] = initTile();
             }
         }
         setGameState(state);
