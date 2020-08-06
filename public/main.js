@@ -252,6 +252,7 @@ function Sudoku(props) {
 
     let selected = props.selected;
     let setSelected = props.setSelected;
+    let lastTileCLicked = props.lastTileClicked;
 
     let finished = props.finished;
 
@@ -275,10 +276,12 @@ function Sudoku(props) {
                 delete selectedDup[idx];
             }
         }
+        lastTileCLicked.current = -1;
         if (!shiftHeld.current) {
             deleteAllSelected(selectedDup, props.user_color);
         }
         if (!is_in_lis || (!shiftHeld.current && numSelected(selected, props.user_color) > 1)) {
+            lastTileCLicked.current = idx;
             if (!(idx in selectedDup)) {
                 selectedDup[idx] = [props.user_color];
             }
@@ -307,6 +310,7 @@ function Sudoku(props) {
             }
         }
         let is_in = (idx in selected);
+        lastTileCLicked.current = idx;
         if (is_in) {
             let user_colors = selected[idx];
             let is_in_lis = false;
@@ -328,11 +332,45 @@ function Sudoku(props) {
 
     };
 
+
+    let moveTile = (dx, dy) => {
+        if (lastTileCLicked.current === -1) {
+            return;
+        }
+        let selectedDup = dupArrayMap(selected);
+        deleteAllSelected(selectedDup, props.user_color);
+        let [r, c] = _idx_to_rc(lastTileCLicked.current);
+        r = (r + dy) % 9;
+        c = (c + dx) % 9;
+        let new_idx = _idx(r, c);
+        lastTileCLicked.current = new_idx;
+        if (!(new_idx in selectedDup)) {
+            selectedDup[new_idx] = [props.user_color];
+        }
+        else {
+            selectedDup[new_idx].push(props.user_color);
+        }
+        setSelected(selectedDup);
+    }
+
     let new_key_cb = (e) => {
         let newState = copyGameState(gameState);
 
         if (e.key === "Shift") {
             shiftHeld.current = true;
+        }
+
+        if (e.key === "ArrowLeft") {
+            moveTile(8, 0);
+        }
+        if (e.key === "ArrowRight") {
+            moveTile(1, 0);
+        }
+        if (e.key === "ArrowUp") {
+            moveTile(0, 8);
+        }
+        if (e.key === "ArrowDown") {
+            moveTile(0, 1);
         }
 
         if (finished) {
@@ -703,6 +741,9 @@ function Screen() {
 
     let [selected, setSelected] = React.useState({});
 
+    // index of last tile clicked (-1 for none)
+    let lastTileClicked = React.useRef(-1);
+
     let [starttime, setStarttime] = React.useState(-1);
     let [endtime, setEndtime] = React.useState(-1);
 
@@ -822,7 +863,8 @@ function Screen() {
         <div className="sudokuContainer">
             <Sudoku gameState={gameState} setGameState={changeGameState} state={state} mode={mode}
                     user_color={user_color.current} selected={selected} setSelected={changeSelected}
-                    finished={finished} hidePencils={hidePencils} hidePossibles={hidePossibles} />
+                    lastTileClicked={lastTileClicked} finished={finished} hidePencils={hidePencils}
+                    hidePossibles={hidePossibles} />
         </div>
         <div className="buttonContainer">
             <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}

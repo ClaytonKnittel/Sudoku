@@ -122,6 +122,14 @@ function _idx(r, c) {
     return b * 9 + i;
 }
 
+function _idx_to_rc(idx) {
+    let b = Math.floor(idx / 9);
+    let i = idx % 9;
+    let r = Math.floor(b / 3) * 3 + Math.floor(i / 3);
+    let c = (b % 3) * 3 + (i % 3);
+    return [r, c];
+}
+
 
 const NOT_DONE = 1;
 const NOT_RIGHT = 2;
@@ -195,6 +203,7 @@ try {
     exports.anyNonGivens = anyNonGivens;
     exports.setGivens = setGivens;
     exports._idx = _idx;
+    exports._idx_to_rc = _idx_to_rc;
     exports.NOT_DONE = NOT_DONE;
     exports.NOT_RIGHT = NOT_RIGHT;
     exports.RIGHT = RIGHT;
