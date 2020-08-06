@@ -395,8 +395,26 @@ function nakedSingles(arr) {
 }
 
 
+function hiddenSingles(arr) {
+    let singles = [];
+    for (let i = 0; i < arr.length; i++) {
+        let itm = arr[i];
+        if (!tileIsResolved(itm)) {
+            if (itm.length === 1) {
+                singles.push(i);
+            }
+        }
+    }
+    if (singles.length > 0) {
+        return randomElement(singles);
+    }
+    return -1;
+}
+
+
 const strategies = [
-    nakedSingles
+    nakedSingles,
+    hiddenSingles
 ];
 
 
