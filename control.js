@@ -42,6 +42,25 @@ function addUserObj(socket_id) {
 }
 
 
+function addToHistory(gameState) {
+    // append to history
+    if (g_history_idx === g_history.length - 1) {
+        g_history.push(copyGameState(gameState));
+        g_history_idx++;
+    }
+    else {
+        assert(g_history_idx < g_history.length);
+
+        for (let i = g_history.length - 2; i >= g_history_idx; i--) {
+            // no need to deep copy
+            g_history.push(g_history[i]);
+        }
+        g_history.push(copyGameState(gameState));
+        g_history_idx = g_history.length - 1;
+    }
+}
+
+
 function init(app) {
     io = socketio.listen(app);
     io.sockets.on("connection", function(socket) {
@@ -382,21 +401,7 @@ function update_game(socket, data) {
                 g_current_state.hinted_tile = -1;
                 g_current_state.hint_state = NO_HINT;
 
-				// append to history
-				if (g_history_idx === g_history.length - 1) {
-					g_history.push(copyGameState(g_current_state));
-					g_history_idx++;
-				}
-				else {
-					assert(g_history_idx < g_history.length);
-
-					for (let i = g_history.length - 2; i >= g_history_idx; i--) {
-						// no need to deep copy
-						g_history.push(g_history[i]);
-					}
-					g_history.push(copyGameState(g_current_state));
-					g_history_idx = g_history.length - 1;
-				}
+                addToHistory(g_current_state);
             }
 		}
 	}
@@ -477,7 +482,9 @@ function verify_cells(socket, data) {
 	if (g_solution === 0) {
 		// no solution
 		return;
-	}
+    }
+
+    let changed = false;
 
 	for (let i = 0; i < g_solution.length; i++) {
 		let r = Math.floor(i / 9);
@@ -488,9 +495,14 @@ function verify_cells(socket, data) {
 
 		if (tile.val !== 0 && ans !== tile.val) {
 			// make all incorrect cells negative
-			tile.val = -tile.val;
+            tile.val = -tile.val;
+            changed = true;
 		}
-	}
+    }
+    
+    if (changed) {
+        addToHistory(g_current_state);
+    }
 
 	io.sockets.emit("update", {
 		gameState: g_current_state,
