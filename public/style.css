@@ -44,14 +44,23 @@ body {
 }
 
 
-.clearButton {
+
+.buttonContainer {
     position: absolute;
     right: 0;
     top: 0;
-    width: calc(10vw - 24px);
+    width: 10vw;
+    height: 80%;
+}
+
+.buttonContainer > .button {
+    display: block;
+    width: calc(100% - 24px);
     cursor: pointer;
     border: 2px solid black;
     border-radius: 4px;
+
+    margin-bottom: 20px;
 
     padding: 10px;
 
@@ -61,101 +70,11 @@ body {
     background-color: #ffffff;
 }
 
-.clearButton:hover {
+.buttonContainer > .button:hover {
     transition: background-color .13s linear;
     background-color: #b4b4b4;
 }
 
-
-.checkButton {
-    position: absolute;
-    right: 0;
-    top: 15%;
-    width: calc(10vw - 24px);
-    cursor: pointer;
-    border: 2px solid black;
-    border-radius: 4px;
-
-    padding: 10px;
-
-    text-align: center;
-
-    transition: background-color .13s linear;
-    background-color: #ffffff;
-}
-
-.checkButton:hover {
-    transition: background-color .13s linear;
-    background-color: #b4b4b4;
-}
-
-.hintButton {
-    position: absolute;
-    right: 0;
-    top: 25%;
-    width: calc(10vw - 24px);
-    cursor: pointer;
-    border: 2px solid black;
-    border-radius: 4px;
-
-    padding: 10px;
-
-    text-align: center;
-
-    transition: background-color .13s linear;
-    background-color: #ffffff;
-}
-
-.hintButton:hover {
-    transition: background-color .13s linear;
-    background-color: #b4b4b4;
-}
-
-
-.undoButton {
-    position: absolute;
-    right: 0;
-    top: 32%;
-    width: calc(10vw - 24px);
-    cursor: pointer;
-    border: 2px solid black;
-    border-radius: 4px;
-
-    padding: 10px;
-
-    text-align: center;
-
-    transition: background-color .13s linear;
-    background-color: #ffffff;
-}
-
-.undoButton:hover {
-    transition: background-color .13s linear;
-    background-color: #b4b4b4;
-}
-
-
-.redoButton {
-    position: absolute;
-    right: 0;
-    top: 39%;
-    width: calc(10vw - 24px);
-    cursor: pointer;
-    border: 2px solid black;
-    border-radius: 4px;
-
-    padding: 10px;
-
-    text-align: center;
-
-    transition: background-color .13s linear;
-    background-color: #ffffff;
-}
-
-.redoButton:hover {
-    transition: background-color .13s linear;
-    background-color: #b4b4b4;
-}
 
 
 .selectedMode {

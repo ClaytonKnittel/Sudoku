@@ -150,8 +150,8 @@ function Tile(props) {
     let incorrect = (val < 0);
     val = Math.abs(val);
 
-    let pencils = state.pencils;
-    let possibles = state.possibles;
+    let pencils = props.hidePencils ? 0 : state.pencils;
+    let possibles = props.hidePossibles ? 0 : state.possibles;
     let given = state.given;
 
     let selected = props.selected;
@@ -219,21 +219,21 @@ function Box(props) {
     let sel = props.selected;
     return (<div className='box'>
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 0} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
-            <Tile val='0' state={props.state} idx={idx_off + 1} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
-            <Tile val='0' state={props.state} idx={idx_off + 2} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
+            <Tile val='0' state={props.state} idx={idx_off + 0} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 1} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 2} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
         </div>
 
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 3} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
-            <Tile val='0' state={props.state} idx={idx_off + 4} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
-            <Tile val='0' state={props.state} idx={idx_off + 5} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
+            <Tile val='0' state={props.state} idx={idx_off + 3} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 4} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 5} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
         </div>
 
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 6} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
-            <Tile val='0' state={props.state} idx={idx_off + 7} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
-            <Tile val='0' state={props.state} idx={idx_off + 8} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} />
+            <Tile val='0' state={props.state} idx={idx_off + 6} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 7} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 8} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
         </div>
     </div>);
 }
@@ -507,21 +507,21 @@ function Sudoku(props) {
 
     return (<div id='board' className='board'>
         <div className='board-row'>
-            <Box state={props.state} idx_off={0}  gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
-            <Box state={props.state} idx_off={9}  gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
-            <Box state={props.state} idx_off={18} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
+            <Box state={props.state} idx_off={0}  gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={9}  gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={18} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
         </div>
 
         <div className='board-row'>
-            <Box state={props.state} idx_off={27} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
-            <Box state={props.state} idx_off={36} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
-            <Box state={props.state} idx_off={45} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
+            <Box state={props.state} idx_off={27} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={36} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={45} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
         </div>
 
         <div className='board-row'>
-            <Box state={props.state} idx_off={54} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
-            <Box state={props.state} idx_off={63} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
-            <Box state={props.state} idx_off={72} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} />
+            <Box state={props.state} idx_off={54} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={63} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={72} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
         </div>
     </div>);
 }
@@ -594,7 +594,7 @@ function clearState(gameState, setGameState, setBoth, finished, resetFn) {
 
 
 function ClearButton({ gameState, setGameState, state, setBoth, finished, resetFn }) {
-    return (<div className="clearButton" onClick={() => {
+    return (<div className="button" onClick={() => {
         clearState(gameState, setGameState, setBoth, finished, resetFn);
     }}>
         {finished ? "reset" : ((anyNonGivens(gameState) || state == 0) ? "clear" : "re-enter")}
@@ -603,7 +603,7 @@ function ClearButton({ gameState, setGameState, state, setBoth, finished, resetF
 
 
 function CheckButton({ gameState }) {
-    return (<div className="checkButton" onClick={() => {
+    return (<div className="button" onClick={() => {
         let res = checkState(gameState);
         if (res == NOT_DONE) {
             alert("Not done yet!");
@@ -622,21 +622,27 @@ function CheckButton({ gameState }) {
 }
 
 function HintButton() {
-    return (<div className="hintButton" onClick={() => {
+    return (<div className="button" onClick={() => {
         socketio.emit("give_hint", { token: getToken() });
     }}>hint</div>);
 }
 
 function UndoButton() {
-    return (<div className="undoButton" onClick={() => {
+    return (<div className="button" onClick={() => {
         socketio.emit("undo", { token: getToken() });
     }}>undo (n)</div>);
 }
 
 function RedoButton() {
-    return (<div className="redoButton" onClick={() => {
+    return (<div className="button" onClick={() => {
         socketio.emit("redo", { token: getToken() });
     }}>redo (m)</div>);
+}
+
+function HideButton({ visibleText, hiddenText, state, setFn }) {
+    return (<div className="button" onClick={() => {
+        setFn(!state);
+    }}>{state ? hiddenText : visibleText}</div>);
 }
 
 function GameClock({ startTime, endTime, finished }) {
@@ -702,6 +708,9 @@ function Screen() {
     let user_color = React.useRef(-1);
     // to be set when a solution has been found
     let [finished, setFinished] = React.useState(false);
+
+    let [hidePencils, setHidePencils] = React.useState(false);
+    let [hidePossibles, setHidePossibles] = React.useState(false);
 
     React.useEffect(() => {
         socketio.on("login_response", (data) => {
@@ -812,14 +821,20 @@ function Screen() {
         <div className="sudokuContainer">
             <Sudoku gameState={gameState} setGameState={changeGameState} state={state} mode={mode}
                     user_color={user_color.current} selected={selected} setSelected={changeSelected}
-                    finished={finished} />
+                    finished={finished} hidePencils={hidePencils} hidePossibles={hidePossibles} />
         </div>
-        <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}
-                    finished={finished} resetFn={resetFn}/>
-        <CheckButton gameState={gameState}/>
-        <HintButton />
-        <UndoButton />
-        <RedoButton />
+        <div className="buttonContainer">
+            <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}
+                        finished={finished} resetFn={resetFn}/>
+            <CheckButton gameState={gameState}/>
+            <HintButton />
+            <UndoButton />
+            <RedoButton />
+            <HideButton visibleText="hide pencils" hiddenText="show pencils" state={hidePencils}
+                    setFn={setHidePencils} />
+            <HideButton visibleText="hide possibles" hiddenText="show possibles" state={hidePossibles}
+                    setFn={setHidePossibles} />
+        </div>
         <GameClock startTime={starttime} endTime={endtime} finished={finished} />
         <Ctrl state={state} beginGame={beginGame} mode={mode} setMode={setMode}/>
     </div>);
