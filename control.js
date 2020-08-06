@@ -5,6 +5,7 @@ const { assert } = require("console");
 
 const { initGameState, copyGameState, wellFormed, setGivens, _idx, checkGameOver } = require('./public/game_logic');
 const { NO_SOLUTIONS, NO_UNIQUE_SOLUTION, solveGame, findHint } = require('./game_solver');
+const { on } = require("process");
 
 
 var io;
@@ -204,18 +205,36 @@ function init(app) {
                 return;
             }
 
+            if (g_solution === 0) {
+                // no solution, no hints available
+                return;
+            }
+
+            if (!onRightTrack()) {
+                // if we aren't on the right track, let them know, we aren't able
+                // to give a hint if it's wrong so far
+                io.sockets.emit("solution_discrepancy");
+                return;
+            }
+
             let tile_idx = findHint(g_current_state);
-            // mark both current state and state in history as hinted
-            g_current_state[tile_idx].hinted = true;
-            g_history[g_history_idx][tile_idx].hinted = true;
-            io.sockets.emit("update", {
-                gameState: g_current_state,
-                state: g_mode,
-                selected: g_selected,
-                starttime: g_starttime,
-                endtime: g_endtime,
-                finished: g_finished
-            });
+            if (tile_idx === -1) {
+                io.sockets.emit("no_hint", {});
+            }
+            else {
+                let g_idx = _idx(Math.floor(tile_idx / 9), tile_idx % 9);
+                // mark both current state and state in history as hinted
+                g_current_state[g_idx].hinted = true;
+                g_history[g_history_idx][g_idx].hinted = true;
+                io.sockets.emit("update", {
+                    gameState: g_current_state,
+                    state: g_mode,
+                    selected: g_selected,
+                    starttime: g_starttime,
+                    endtime: g_endtime,
+                    finished: g_finished
+                });
+            }
         });
 
         socket.on("reset", (data) => {
@@ -422,6 +441,24 @@ function update_game(socket, data) {
 		endtime: g_endtime,
 		finished: g_finished
 	});
+}
+
+
+// returns true if the current game state is on the right track, i.e. no discrepancies
+// between it and the correct solution so far
+function onRightTrack() {
+	for (let i = 0; i < g_solution.length; i++) {
+		let r = Math.floor(i / 9);
+		let c = i % 9;
+
+		let tile = g_current_state[_idx(r, c)];
+		let ans  = g_solution[r * 9 + c];
+
+		if (tile.val !== 0 && ans !== tile.val) {
+			return false;
+		}
+    }
+    return true;
 }
 
 

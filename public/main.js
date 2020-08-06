@@ -729,6 +729,12 @@ function Screen() {
         socketio.on("multiple_solutions", () => {
             alert("warning: this puzzle appears to have multiple solutions");
         });
+        socketio.on("no_hint", () => {
+            alert("sorry, no hint could be found");
+        });
+        socketio.on("solution_discrepancy", () => {
+            alert("something appears to be wrong...");
+        });
 
         let token = window.localStorage.getItem("token");
         if (token === null) {

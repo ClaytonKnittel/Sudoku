@@ -311,10 +311,107 @@ async function solveGame(gameState) {
 }
 
 
+
+function randomElement(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+
+const ROWS = 1;
+const COLS = 1;
+const BOXES = 1;
+
+/*
+ * loops through each constraint condition (rows, cols, & boxes) and first
+ * calls initFn with parameters (constraint_type, item_idx), where for
+ *    constraint_type = ROWS -> item_idx = row index (0-8, counting from top)
+ *    constraint_type = COLS -> item_idx = column index (0-8, counting from left)
+ *    constraint_type = BOXES -> item_idx = box index (0-8, counting from top left, row-major)
+ * and calls loopFn for each cell within the constraint with parameters
+ * (row_idx, col_idx, item_idx, constraint_type), where (row_idx, col_idx) are the coordinates
+ * of the current cell
+ * after iteration through a constraint condition, termFn is called with the same parameters as
+ * initFn
+ */
+function forEachConstraint(initFn, loopFn, termFn=() => {}) {
+    // rows
+    for (let r = 0; r < 9; r++) {
+        initFn(ROWS, r);
+        for (let c = 0; c < 9; c++) {
+            loopFn(r, c, r, ROWS);
+        }
+        termFn(ROWS, r);
+    }
+    // cols
+    for (let c = 0; c < 9; c++) {
+        initFn(COLS, c);
+        for (let r = 0; r < 9; r++) {
+            loopFn(r, c, c, COLS);
+        }
+        termFn(COLS, c);
+    }
+    // boxes
+    for (let b = 0; b < 9; b++) {
+        initFn(BOXES, b);
+        for (let i = 0; i < 9; i++) {
+            let r = Math.floor(b / 3) * 3 + Math.floor(i / 3);
+            let c = (b % 3) * 3 + (i % 3);
+            loopFn(r, c, b, BOXES);
+        }
+        termFn(BOXES, b);
+    }
+}
+
+/*
+ * checks for naked singles in the rows/boxes/columns
+ */
+function nakedSingles(arr) {
+    let num_arr;
+    let found_tiles = [];
+    forEachConstraint(() => {
+        num_arr = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+        loc_arr = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    }, (r, c) => {
+        let idx = r * 9 + c;
+        let itm = arr[idx];
+        if (!tileIsResolved(itm)) {
+            itm.forEach((possibility) => {
+                num_arr[possibility - 1]++;
+                loc_arr[possibility - 1] = idx;
+            });
+        }
+    }, () => {
+        for (let i = 0; i < 9; i++) {
+            if (num_arr[i] === 1) {
+                //console.log(i + 1, "->", loc_arr[i]);
+                found_tiles.push(loc_arr[i]);
+            }
+        }
+    });
+    if (found_tiles.length > 0) {
+        return randomElement(found_tiles);
+    }
+    return -1;
+}
+
+
+const strategies = [
+    nakedSingles
+];
+
+
 function findHint(gameState) {
     let arr = createSolverState(gameState);
+    eliminate(arr);
 
-    return 0;
+    for (let i = 0; i < strategies.length; i++) {
+        let res = strategies[i](arr);
+        if (res !== -1) {
+            return res;
+        }
+    }
+
+    return -1;
 }
 
 
