@@ -183,7 +183,9 @@ function Tile(props) {
                     : (state.user_color >= 0 ? user_colors[state.user_color].color : "#000000")))
     };
 
-    if (props.highlight_all == val && !(props.idx in selected)) {
+    if (!(props.idx in selected) && (props.highlight_all == val ||
+                ((pencils & (1 << (props.highlight_all - 1))) !== 0) ||
+                ((possibles & (1 << (props.highlight_all - 1)))))) {
         sel_style = {
             backgroundColor: highlight_all_col
         };
