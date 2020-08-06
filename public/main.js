@@ -200,7 +200,8 @@ function Tile(props) {
     }, []);
 
     return (
-        <span id={`tile_${props.idx}`} className={`tile ${empty ? ' empty' : ''}`} style={sel_style} onMouseDown={() => {
+        <span id={`tile_${props.idx}`} className={`tile${empty ? ' empty' : ''}${props.finished ? ' animate_rainbow' : ''}`}
+            style={sel_style} onMouseDown={() => {
                 setSelected(props.idx);
             }}>
             <div className={`number_cell${empty ? '' : ' nonempty'}${given ? ' given' : (val !== 0 ? ' guess' : '')}`}>
@@ -217,23 +218,23 @@ function Tile(props) {
 function Box(props) {
     let idx_off = parseInt(props.idx_off);
     let sel = props.selected;
-    return (<div className='box'>
+    return (<div className={`box${props.finished ? ' animate_rainbow' : ''}`}>
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 0} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
-            <Tile val='0' state={props.state} idx={idx_off + 1} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
-            <Tile val='0' state={props.state} idx={idx_off + 2} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 0} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 1} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 2} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
         </div>
 
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 3} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
-            <Tile val='0' state={props.state} idx={idx_off + 4} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
-            <Tile val='0' state={props.state} idx={idx_off + 5} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 3} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 4} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 5} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
         </div>
 
         <div className='box-row'>
-            <Tile val='0' state={props.state} idx={idx_off + 6} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
-            <Tile val='0' state={props.state} idx={idx_off + 7} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
-            <Tile val='0' state={props.state} idx={idx_off + 8} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 6} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 7} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Tile val='0' state={props.state} idx={idx_off + 8} gameState={props.gameState} selected={sel} setSelected={props.setSelected} highlight_all={props.highlight_all} drag={props.drag} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
         </div>
     </div>);
 }
@@ -505,23 +506,23 @@ function Sudoku(props) {
         highlight_all = gameState[clicked_tile].val;
     }
 
-    return (<div id='board' className='board'>
+    return (<div id='board' className={`board${props.finished ? ' animate_rainbow' : ''}`}>
         <div className='board-row'>
-            <Box state={props.state} idx_off={0}  gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
-            <Box state={props.state} idx_off={9}  gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
-            <Box state={props.state} idx_off={18} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={0}  gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={9}  gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={18} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
         </div>
 
         <div className='board-row'>
-            <Box state={props.state} idx_off={27} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
-            <Box state={props.state} idx_off={36} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
-            <Box state={props.state} idx_off={45} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={27} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={36} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={45} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
         </div>
 
         <div className='board-row'>
-            <Box state={props.state} idx_off={54} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
-            <Box state={props.state} idx_off={63} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
-            <Box state={props.state} idx_off={72} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={54} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={63} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
+            <Box state={props.state} idx_off={72} gameState={gameState} selected={selected} setSelected={selectTile} highlight_all={highlight_all} drag={mouseDragCb} finished={props.finished} hidePencils={props.hidePencils} hidePossibles={props.hidePossibles} />
         </div>
     </div>);
 }
