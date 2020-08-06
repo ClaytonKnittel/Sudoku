@@ -304,7 +304,7 @@ function findSoln(arr) {
 }
 
 async function solveGame(gameState) {
-    initializeEasyGame(gameState);
+    //initializeEasyGame(gameState);
     let arr = createSolverState(gameState);
     let soln = findSoln(arr);
     return soln;
