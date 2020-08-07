@@ -123,6 +123,16 @@ function pSetForEach(pset, callback) {
     }
 }
 
+function pSetToString(pset) {
+    let str = "";
+    for (let i = 1; i <= 9; i++) {
+        if (pSetIncludes(pset, i)) {
+            str += i.toString() + ", ";
+        }
+    }
+    return "(" + str.substr(0, str.length - 2) + ")";
+}
+
 
 function createSolverState(gameState) {
     let arr = [];
@@ -327,8 +337,15 @@ function printGame(arr) {
 					}
 				}
 				str += "] ";
-			}
-		}
+            }
+            
+            if (c % 3 === 2) {
+                str += "  ";
+            }
+        }
+        if (r === 2 || r === 5) {
+            str += "\n";
+        }
 		console.log(str);
 	}
 	console.log();
@@ -375,7 +392,7 @@ function findSoln(arr) {
 }
 
 async function solveGame(gameState) {
-    initializeHardGame(gameState);
+    //initializeHardGame(gameState);
     let arr = createSolverState(gameState);
     let soln = findSoln(arr);
     return soln;
@@ -408,22 +425,27 @@ function idxToConstraints(idx) {
 }
 
 
+/*
+ * loop through all elements of a given constraint. The arguments to loopFn will be
+ * (row, column, idx), where (row, column) are the coordinates of the current tile on
+ * the board, and idx is the index of the tile within the given constraint ([0-8] unique)
+ */
 function constraintForEach(type, idx, loopFn) {
     if (type === ROWS) {
         for (let c = 0; c < 9; c++) {
-            loopFn(idx, c);
+            loopFn(idx, c, c);
         }
     }
     else if (type === COLS) {
         for (let r = 0; r < 9; r++) {
-            loopFn(r, idx);
+            loopFn(r, idx, r);
         }
     }
     else {
         for (let i = 0; i < 9; i++) {
             let r = Math.floor(idx / 3) * 3 + Math.floor(i / 3);
             let c = (idx % 3) * 3 + (i % 3);
-            loopFn(r, c);
+            loopFn(r, c, i);
         }
     }
 }
@@ -519,59 +541,67 @@ function hiddenSingles(arr) {
 }
 
 
-function nakedSets(arr) {
-    let pairMap;
+/*
+ * finds all covers of some subset of n numbers [1-9] that use exactly n tiles,
+ * returning the results as a list 
+ */
+function _find_n_way_covers(arr, constraint_type, item_idx) {
+    let cover_list = [];
 
-    // maps constraint index to number set
-    let nakedPairMap = new Map();
-
-    forEachConstraint(() => {
-        pairMap = new Map();
-    }, (r, c, item_idx, constraint_type) => {
-        let cIdx = constraintIdx(constraint_type, item_idx);
+    constraintForEach(constraint_type, item_idx, (r, c) => {
         let idx = r * 9 + c;
         let itm = arr[idx];
         if (!tileIsResolved(itm)) {
-            let tileSet = itm;
-            if (pairMap.has(tileSet)) {
-                let setCnt = pairMap.get(tileSet);
-                setCnt.list.push(idx);
-            }
-            else {
-                pairMap.set(tileSet, {
-                    numPossibles: pSetSize(itm),
-                    list: [idx],
-                });
+            let pset = itm;
+            let setSize = pSetSize(pset);
+            let tile_list = [];
+
+            // count # of possible sets that are subsets of this one
+            constraintForEach(constraint_type, item_idx, (r, c) => {
+                let idx = r * 9 + c;
+                let otherPset = arr[idx];
+                if (!tileIsResolved(otherPset)) {
+                    if (!((~pset) & otherPset)) {
+                        // otherPset is a subset of pset
+                        tile_list.push(idx);
+                    }
+                }
+            });
+
+            if (tile_list.length === setSize) {
+                // naked set of size <setSize>
+                cover_list.push([constraint_type, item_idx, pset, tile_list]);
             }
         }
-    }, (constraint_type, item_idx) => {
-        pairMap.forEach((setCnt, tileSet) => {
-            for (let i = 0; i < 9; i++) {
-                if ((tileSet & (1 << i)) !== 0) {
-                    console.log(i + 1);
-                }
-            }
-            console.log((constraint_type === ROWS ? "row" : constraint_type === COLS ? "col" : "box"),
-                item_idx, setCnt);
-            if (setCnt.list.length === setCnt.numPossibles) {
-                console.log(setCnt);
-                nakedPairMap.set(constraintIdx(constraint_type, item_idx), [ tileSet, setCnt.list]);
-            }
-        });
     });
 
-    console.log(nakedPairMap);
+    return cover_list;
+}
+
+
+function nakedSets(arr) {
+
+    // maps constraint index to number set
+    let nakedPairList = [];
+
+    for (let idx = 0; idx < 9; idx++) {
+        nakedPairList = nakedPairList.concat(_find_n_way_covers(arr, ROWS, idx));
+        nakedPairList = nakedPairList.concat(_find_n_way_covers(arr, COLS, idx));
+        nakedPairList = nakedPairList.concat(_find_n_way_covers(arr, BOXES, idx));
+    }
+
     let changed = false;
 
-    nakedPairMap.forEach(([ tileSet, list ], cIdx) => {
-        let [ type, idx ] = idxToConstraints(cIdx);
-        constraintForEach(type, idx, (r, c) => {
+    nakedPairList.forEach(([ type, item_idx, pset, tile_list ]) => {
+        console.log(type === ROWS ? "row" : type === COLS ? "col" : "box",
+                item_idx, pSetToString(pset), tile_list);
+        constraintForEach(type, item_idx, (r, c) => {
             let idx = r * 9 + c;
-            if (!tileIsResolved(arr[idx]) && !list.includes(idx)) {
-                let prevLen = arr[idx].length;
+            if (!tileIsResolved(arr[idx]) && !tile_list.includes(idx)) {
+                let prevSet = arr[idx];
                 // remove all tiles which are in the tileSet
-                arr[idx] &= PSET_BIT | ~(tileSet);
-                changed = changed || (prevLen !== arr[idx].length);
+                arr[idx] &= PSET_BIT | ~pset;
+                changed = changed || (prevSet !== arr[idx]);
             }
         });
     });
@@ -580,16 +610,96 @@ function nakedSets(arr) {
 }
 
 
+/*
+ * within one constraint, converts the elements from the mapping
+ * tile_idx => possible value set, to
+ * possible value => tile_idxs
+ * 
+ * this function is an involution (it is its own inverse)
+ */
+function _poss_to_assoc(arr, constraint_idx, item_idx) {
+    let new_arr = [];
+    
+    constraintForEach(constraint_idx, item_idx, (r, c, idx) => {
+        let cur_val = idx + 1;
+        let assoc_bvec = PSET_BIT;
+
+        constraintForEach(constraint_idx, item_idx, (r, c, idx) => {
+            let arr_idx = r * 9 + c;
+            if (!tileIsResolved(arr[arr_idx])) {
+                assoc_bvec |= ((arr[arr_idx] >> (cur_val - 1)) & 1) << idx;
+            }
+            else if (arr[arr_idx] === cur_val) {
+                assoc_bvec = cur_val;
+            }
+        });
+
+        new_arr.push(assoc_bvec);
+    });
+
+    constraintForEach(constraint_idx, item_idx, (r, c, c_idx) => {
+        let idx = r * 9 + c;
+        arr[idx] = new_arr[c_idx];
+    });
+}
+
+
+function hiddenSets(arr) {
+
+    // maps constraint index to number set
+    let nakedPairList = [];
+
+    for (let idx = 0; idx < 9; idx++) {
+        _poss_to_assoc(arr, ROWS, idx);
+        if (idx === 0) {
+            printGame(arr);
+        }
+        nakedPairList = nakedPairList.concat(_find_n_way_covers(arr, ROWS, idx));
+        _poss_to_assoc(arr, ROWS, idx);
+
+        _poss_to_assoc(arr, COLS, idx);
+        nakedPairList = nakedPairList.concat(_find_n_way_covers(arr, COLS, idx));
+        _poss_to_assoc(arr, COLS, idx);
+
+        _poss_to_assoc(arr, BOXES, idx);
+        nakedPairList = nakedPairList.concat(_find_n_way_covers(arr, BOXES, idx));
+        _poss_to_assoc(arr, BOXES, idx);
+    }
+
+    let changed = false;
+
+    nakedPairList.forEach(([ type, item_idx, pset, tile_list ]) => {
+        console.log(type === ROWS ? "row" : type === COLS ? "col" : "box",
+                item_idx, pSetToString(pset), tile_list);
+        // constraintForEach(type, item_idx, (r, c) => {
+        //     let idx = r * 9 + c;
+        //     if (!tileIsResolved(arr[idx]) && !tile_list.includes(idx)) {
+        //         let prevSet = arr[idx];
+        //         // remove all tiles which are in the tileSet
+        //         arr[idx] &= PSET_BIT | ~pset;
+        //         changed = changed || (prevSet !== arr[idx]);
+        //     }
+        // });
+    });
+
+    return changed ? FOUND_RESTRICTION : CONTINUE;
+}
+
+
+
 const strategies = [
     nakedSingles,
     hiddenSingles,
-    nakedSets
+    nakedSets,
+    //hiddenSets
 ];
 
 
 function findHint(gameState) {
     let arr = createSolverState(gameState);
     eliminate(arr);
+    console.log("hint");
+    printGame(arr);
 
     for (let i = 0; i < strategies.length; i++) {
         let res = strategies[i](arr);
