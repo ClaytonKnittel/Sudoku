@@ -29,24 +29,30 @@ function initializeHardGame(gameState) {
 	gameState.board[2].val = 3;
 	gameState.board[4].val = 2;
 	gameState.board[6].val = 7;
+	gameState.board[7].val = 1;
 	gameState.board[8].val = 5;
 
 	gameState.board[9].val = 7;
 	gameState.board[14].val = 1;
+	gameState.board[17].val = 2;
 
 	gameState.board[18].val = 2;
+	gameState.board[19].val = 1;
 	gameState.board[25].val = 6;
 
 	gameState.board[28].val = 9;
 	gameState.board[33].val = 3;
 
+	gameState.board[36].val = 3;
 	gameState.board[37].val = 2;
 	gameState.board[41].val = 4;
 
 	gameState.board[45].val = 1;
 	gameState.board[49].val = 3;
 	gameState.board[50].val = 8;
+	gameState.board[52].val = 2;
 
+	gameState.board[55].val = 3;
 	gameState.board[57].val = 8;
 
 	gameState.board[63].val = 2;
@@ -56,7 +62,10 @@ function initializeHardGame(gameState) {
 
 	gameState.board[72].val = 5;
 	gameState.board[74].val = 1;
+	gameState.board[75].val = 4;
 	gameState.board[76].val = 7;
+	gameState.board[77].val = 2;
+    gameState.board[78].val = 3;
     gameState.board[80].val = 6;
     
     gameState.board.forEach((tile) => {
@@ -64,13 +73,64 @@ function initializeHardGame(gameState) {
     });
 }
 
+
+
+// bit to be set in solver state array to indicate that this cell is a pset, not
+// a given/found value
+const PSET_BIT = 0x200;
+
+/*
+ * p-sets (possibility sets) are sets of numbers 1 - 9
+ */
+function pSetInit() {
+    return 0x1ff;
+}
+
+function pSetAdd(pset, val) {
+    return pset | (1 << (val - 1));
+}
+
+function pSetRemove(pset, val) {
+    return pset & ~(1 << (val - 1));
+}
+
+function pSetIncludes(pset, val) {
+    return (pset & (1 << (val - 1))) !== 0;
+}
+
+function pSetSize(pset) {
+    // max bitcount = 10 (with top bit), then subtract 1 for the top bit
+    let cnt = (pset & 0x155) + ((pset >> 1) & 0x155);
+    cnt = (cnt & 0x333) + ((cnt >> 2) & 0x033);
+    cnt = (cnt & 0xf0f) + ((cnt >> 4) & 0x00f);
+    cnt = (cnt & 0x0ff) + ((cnt >> 8) & 0x0ff);
+    return cnt - 1;
+}
+
+// only to be called when pset contains exactly one digit, returns that digit
+function pSetResolve(pset) {
+    // remove PSET_BIT bit
+    pset &= 0x1ff;
+    let pos = !(pset & 0x155) + ((!(pset & 0x333)) << 1) + ((!(pset & 0xf0f)) << 2) + ((pset & 0x100) >> 5);
+    return pos + 1;
+}
+
+function pSetForEach(pset, callback) {
+    for (let i = 1; i <= 9; i++) {
+        if (pSetIncludes(pset, i)) {
+            callback(i);
+        }
+    }
+}
+
+
 function createSolverState(gameState) {
     let arr = [];
 	for (let r = 0; r < 9; r++) {
 		for (let c = 0; c < 9; c++) {
 			let val = gameState.board[_idx(r, c)].val;
-			if (val == 0) {
-				val = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+			if (val === 0) {
+				val = pSetInit() | PSET_BIT;
 			}
 			arr.push(val);
 		}
@@ -80,7 +140,7 @@ function createSolverState(gameState) {
 
 
 function tileIsResolved(tile) {
-	return !Array.isArray(tile);
+	return (tile & PSET_BIT) === 0;
 }
 
 
@@ -90,9 +150,9 @@ function eliminateTile(arr, idx, num) {
 		// already resolved
 		return false;
 	}
-	if (tile.includes(num)) {
-		// the number was a possibility here before
-		arr[idx] = tile.filter((val) => val !== num);
+	if (pSetIncludes(tile, num)) {
+        // the number was a possibility here before
+        arr[idx] = pSetRemove(tile, num);
 		return true;
 	}
 	// the number already wasn't a possibility
@@ -140,8 +200,8 @@ function resolveGame(arr) {
 	for (let r = 0; r < 9; r++) {
 		for (let c = 0; c < 9; c++) {
 			let tile = arr[r * 9 + c];
-			if (!tileIsResolved(tile) && tile.length === 1) {
-				arr[r * 9 + c] = tile[0];
+			if (!tileIsResolved(tile) && pSetSize(tile) === 1) {
+				arr[r * 9 + c] = pSetResolve(tile);
 				changed = true;
 			}
 		}
@@ -153,7 +213,7 @@ function anyContradictions(arr) {
 	for (let r = 0; r < 9; r++) {
 		for (let c = 0; c < 9; c++) {
 			let tile = arr[r * 9 + c];
-			if (!tileIsResolved(tile) && tile.length === 0) {
+			if (!tileIsResolved(tile) && pSetSize(tile) === 0) {
 				return true;
 			}
 		}
@@ -231,7 +291,7 @@ function findBestGuessTile(arr) {
 		for (let c = 0; c < 9; c++) {
 			let tile = arr[r * 9 + c];
 			if (!tileIsResolved(tile)) {
-				let l = tile.length;
+				let l = pSetSize(tile);
 				if (l < min_poss) {
 					min_poss = l;
 					best_idx = r * 9 + c;
@@ -244,16 +304,7 @@ function findBestGuessTile(arr) {
 
 
 function stateDeepCopy(state) {
-	let n = [];
-	state.forEach((tile) => {
-		if (tileIsResolved(tile)) {
-			n.push(tile);
-		}
-		else {
-			n.push([...tile]);
-		}
-	});
-	return n;
+	return [...state];
 }
 
 
@@ -268,7 +319,7 @@ function printGame(arr) {
 			else {
 				str += "[";
 				for (let i = 1; i <= 9; i++) {
-					if (tile.includes(i)) {
+					if (pSetIncludes(tile, i)) {
 						str += i.toString();
 					}
 					else {
@@ -296,7 +347,7 @@ function findSoln(arr) {
 	let idx = findBestGuessTile(arr);
 	let possibleSolns = [];
 	let no_unique = false;
-	arr[idx].forEach((poss) => {
+	pSetForEach(arr[idx], (poss) => {
 		// if we already have more than 1 solution, no need to try and find even more
 		if (!no_unique && possibleSolns.length <= 1) {
 			let arrCpy = stateDeepCopy(arr);
@@ -324,7 +375,7 @@ function findSoln(arr) {
 }
 
 async function solveGame(gameState) {
-    initializeEasyGame(gameState);
+    initializeHardGame(gameState);
     let arr = createSolverState(gameState);
     let soln = findSoln(arr);
     return soln;
@@ -337,9 +388,45 @@ function randomElement(arr) {
 }
 
 
-const ROWS = 1;
+
+const CONTINUE = -1;
+const FOUND_RESTRICTION = -2;
+
+
+const ROWS = 0;
 const COLS = 1;
-const BOXES = 1;
+const BOXES = 2;
+
+// type is one of ROWS, COLS, BOXES, idx is [0-8]
+function constraintIdx(type, idx) {
+    return (type * 9) + idx;
+}
+
+// returns pair [type, idx], inverse of constraintIdx
+function idxToConstraints(idx) {
+    return [ Math.floor(idx / 9), idx % 9 ];
+}
+
+
+function constraintForEach(type, idx, loopFn) {
+    if (type === ROWS) {
+        for (let c = 0; c < 9; c++) {
+            loopFn(idx, c);
+        }
+    }
+    else if (type === COLS) {
+        for (let r = 0; r < 9; r++) {
+            loopFn(r, idx);
+        }
+    }
+    else {
+        for (let i = 0; i < 9; i++) {
+            let r = Math.floor(idx / 3) * 3 + Math.floor(i / 3);
+            let c = (idx % 3) * 3 + (i % 3);
+            loopFn(r, c);
+        }
+    }
+}
 
 /*
  * loops through each constraint condition (rows, cols, & boxes) and first
@@ -395,7 +482,7 @@ function nakedSingles(arr) {
         let idx = r * 9 + c;
         let itm = arr[idx];
         if (!tileIsResolved(itm)) {
-            itm.forEach((possibility) => {
+            pSetForEach(itm, (possibility) => {
                 num_arr[possibility - 1]++;
                 loc_arr[possibility - 1] = idx;
             });
@@ -411,7 +498,7 @@ function nakedSingles(arr) {
     if (found_tiles.length > 0) {
         return randomElement(found_tiles);
     }
-    return -1;
+    return CONTINUE;
 }
 
 
@@ -420,7 +507,7 @@ function hiddenSingles(arr) {
     for (let i = 0; i < arr.length; i++) {
         let itm = arr[i];
         if (!tileIsResolved(itm)) {
-            if (itm.length === 1) {
+            if (pSetSize(itm) === 1) {
                 singles.push(i);
             }
         }
@@ -428,13 +515,75 @@ function hiddenSingles(arr) {
     if (singles.length > 0) {
         return randomElement(singles);
     }
-    return -1;
+    return CONTINUE;
+}
+
+
+function nakedSets(arr) {
+    let pairMap;
+
+    // maps constraint index to number set
+    let nakedPairMap = new Map();
+
+    forEachConstraint(() => {
+        pairMap = new Map();
+    }, (r, c, item_idx, constraint_type) => {
+        let cIdx = constraintIdx(constraint_type, item_idx);
+        let idx = r * 9 + c;
+        let itm = arr[idx];
+        if (!tileIsResolved(itm)) {
+            let tileSet = itm;
+            if (pairMap.has(tileSet)) {
+                let setCnt = pairMap.get(tileSet);
+                setCnt.list.push(idx);
+            }
+            else {
+                pairMap.set(tileSet, {
+                    numPossibles: pSetSize(itm),
+                    list: [idx],
+                });
+            }
+        }
+    }, (constraint_type, item_idx) => {
+        pairMap.forEach((setCnt, tileSet) => {
+            for (let i = 0; i < 9; i++) {
+                if ((tileSet & (1 << i)) !== 0) {
+                    console.log(i + 1);
+                }
+            }
+            console.log((constraint_type === ROWS ? "row" : constraint_type === COLS ? "col" : "box"),
+                item_idx, setCnt);
+            if (setCnt.list.length === setCnt.numPossibles) {
+                console.log(setCnt);
+                nakedPairMap.set(constraintIdx(constraint_type, item_idx), [ tileSet, setCnt.list]);
+            }
+        });
+    });
+
+    console.log(nakedPairMap);
+    let changed = false;
+
+    nakedPairMap.forEach(([ tileSet, list ], cIdx) => {
+        let [ type, idx ] = idxToConstraints(cIdx);
+        constraintForEach(type, idx, (r, c) => {
+            let idx = r * 9 + c;
+            if (!tileIsResolved(arr[idx]) && !list.includes(idx)) {
+                let prevLen = arr[idx].length;
+                // remove all tiles which are in the tileSet
+                arr[idx] &= PSET_BIT | ~(tileSet);
+                changed = changed || (prevLen !== arr[idx].length);
+            }
+        });
+    });
+
+    return changed ? FOUND_RESTRICTION : CONTINUE;
 }
 
 
 const strategies = [
     nakedSingles,
-    hiddenSingles
+    hiddenSingles,
+    nakedSets
 ];
 
 
@@ -444,10 +593,22 @@ function findHint(gameState) {
 
     for (let i = 0; i < strategies.length; i++) {
         let res = strategies[i](arr);
-        if (res !== -1) {
+        if (res >= 0) {
             return res;
         }
+        if (res === CONTINUE) {
+            continue;
+        }
+        if (res === FOUND_RESTRICTION) {
+            // restart search
+            console.log("found res");
+            printGame(arr);
+            i = -1;
+            continue;
+        }
     }
+    console.log("done");
+    printGame(arr);
 
     return -1;
 }
