@@ -253,3 +253,7 @@ body {
 /* .selected > .possible {
     color: #38b2c0;
 } */
+
+.pouting_face {
+    content: "🥺";
+}
