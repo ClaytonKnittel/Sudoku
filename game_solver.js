@@ -557,13 +557,13 @@ function _find_n_way_covers(arr, constraint_type, item_idx) {
             let tile_list = [];
 
             // count # of possible sets that are subsets of this one
-            constraintForEach(constraint_type, item_idx, (r, c) => {
+            constraintForEach(constraint_type, item_idx, (r, c, cIdx) => {
                 let idx = r * 9 + c;
                 let otherPset = arr[idx];
                 if (!tileIsResolved(otherPset)) {
                     if (!((~pset) & otherPset)) {
                         // otherPset is a subset of pset
-                        tile_list.push(idx);
+                        tile_list.push(cIdx);
                     }
                 }
             });
@@ -595,9 +595,9 @@ function nakedSets(arr) {
     nakedPairList.forEach(([ type, item_idx, pset, tile_list ]) => {
         console.log(type === ROWS ? "row" : type === COLS ? "col" : "box",
                 item_idx, pSetToString(pset), tile_list);
-        constraintForEach(type, item_idx, (r, c) => {
+        constraintForEach(type, item_idx, (r, c, cIdx) => {
             let idx = r * 9 + c;
-            if (!tileIsResolved(arr[idx]) && !tile_list.includes(idx)) {
+            if (!tileIsResolved(arr[idx]) && !tile_list.includes(cIdx)) {
                 let prevSet = arr[idx];
                 // remove all tiles which are in the tileSet
                 arr[idx] &= PSET_BIT | ~pset;
@@ -624,13 +624,13 @@ function _poss_to_assoc(arr, constraint_idx, item_idx) {
         let cur_val = idx + 1;
         let assoc_bvec = PSET_BIT;
 
-        constraintForEach(constraint_idx, item_idx, (r, c, idx) => {
+        constraintForEach(constraint_idx, item_idx, (r, c, cIdx) => {
             let arr_idx = r * 9 + c;
             if (!tileIsResolved(arr[arr_idx])) {
-                assoc_bvec |= ((arr[arr_idx] >> (cur_val - 1)) & 1) << idx;
+                assoc_bvec |= ((arr[arr_idx] >> (cur_val - 1)) & 1) << cIdx;
             }
             else if (arr[arr_idx] === cur_val) {
-                assoc_bvec = cur_val;
+                assoc_bvec = cIdx + 1;
             }
         });
 
@@ -647,39 +647,45 @@ function _poss_to_assoc(arr, constraint_idx, item_idx) {
 function hiddenSets(arr) {
 
     // maps constraint index to number set
-    let nakedPairList = [];
+    let hiddenSetList = [];
 
     for (let idx = 0; idx < 9; idx++) {
         _poss_to_assoc(arr, ROWS, idx);
-        if (idx === 0) {
-            printGame(arr);
-        }
-        nakedPairList = nakedPairList.concat(_find_n_way_covers(arr, ROWS, idx));
+        hiddenSetList = hiddenSetList.concat(_find_n_way_covers(arr, ROWS, idx));
         _poss_to_assoc(arr, ROWS, idx);
 
         _poss_to_assoc(arr, COLS, idx);
-        nakedPairList = nakedPairList.concat(_find_n_way_covers(arr, COLS, idx));
+        hiddenSetList = hiddenSetList.concat(_find_n_way_covers(arr, COLS, idx));
         _poss_to_assoc(arr, COLS, idx);
 
         _poss_to_assoc(arr, BOXES, idx);
-        nakedPairList = nakedPairList.concat(_find_n_way_covers(arr, BOXES, idx));
+        hiddenSetList = hiddenSetList.concat(_find_n_way_covers(arr, BOXES, idx));
         _poss_to_assoc(arr, BOXES, idx);
     }
 
     let changed = false;
 
-    nakedPairList.forEach(([ type, item_idx, pset, tile_list ]) => {
+    hiddenSetList.forEach(([ type, item_idx, cIdxSet, p_list ]) => {
         console.log(type === ROWS ? "row" : type === COLS ? "col" : "box",
-                item_idx, pSetToString(pset), tile_list);
-        // constraintForEach(type, item_idx, (r, c) => {
-        //     let idx = r * 9 + c;
-        //     if (!tileIsResolved(arr[idx]) && !tile_list.includes(idx)) {
-        //         let prevSet = arr[idx];
-        //         // remove all tiles which are in the tileSet
-        //         arr[idx] &= PSET_BIT | ~pset;
-        //         changed = changed || (prevSet !== arr[idx]);
-        //     }
-        // });
+                item_idx, pSetToString(cIdxSet), p_list);
+
+        // form a pset bitmask from p_list (list of digit indices [0-8] for each digit in the
+        // hidden set)
+        let pset = PSET_BIT;
+        p_list.forEach((numIdx) => pset |= (1 << numIdx));
+        console.log(pset.toString(2));
+
+        // go through and eliminate all other possibilities in each tile of the cIdxSet
+        constraintForEach(type, item_idx, (r, c, cIdx) => {
+            let idx = r * 9 + c;
+            if (!tileIsResolved(arr[idx]) && pSetIncludes(cIdxSet, cIdx + 1)) {
+                let prevSet = arr[idx];
+                // remove all tiles which are in the tileSet
+                arr[idx] &= pset;
+                console.log(cIdx, prevSet.toString(2), "=>", arr[idx].toString(2));
+                changed = changed || (prevSet !== arr[idx]);
+            }
+        });
     });
 
     return changed ? FOUND_RESTRICTION : CONTINUE;
@@ -691,7 +697,7 @@ const strategies = [
     nakedSingles,
     hiddenSingles,
     nakedSets,
-    //hiddenSets
+    hiddenSets
 ];
 
 
