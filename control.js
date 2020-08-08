@@ -90,12 +90,7 @@ function init(app) {
                     }
                 }
                 io.sockets.emit("update", {
-                    gameState: g_current_state,
-                    state: g_mode,
-                    selected: g_selected,
-                    starttime: g_starttime,
-                    endtime: g_endtime,
-                    finished: g_finished
+                    selected: g_selected
                 });
 
                 g_users.delete(token);
@@ -168,12 +163,7 @@ function init(app) {
             g_current_state = copyGameState(g_history[g_history_idx]);
 
             io.sockets.emit("update", {
-                gameState: g_current_state,
-                state: g_mode,
-                selected: g_selected,
-                starttime: g_starttime,
-                endtime: g_endtime,
-                finished: g_finished
+                gameState: g_current_state
             });
         });
 
@@ -197,12 +187,7 @@ function init(app) {
             g_current_state = copyGameState(g_history[g_history_idx]);
 
             io.sockets.emit("update", {
-                gameState: g_current_state,
-                state: g_mode,
-                selected: g_selected,
-                starttime: g_starttime,
-                endtime: g_endtime,
-                finished: g_finished
+                gameState: g_current_state
             });
         });
 
@@ -246,12 +231,7 @@ function init(app) {
                 g_history[g_history_idx].hint_state = HINT_LVL1;
                 g_history[g_history_idx].hinted_tile = g_idx;
                 io.sockets.emit("update", {
-                    gameState: g_current_state,
-                    state: g_mode,
-                    selected: g_selected,
-                    starttime: g_starttime,
-                    endtime: g_endtime,
-                    finished: g_finished
+                    gameState: g_current_state
                 });
             }
         });
@@ -504,14 +484,15 @@ function verify_cells(socket, data) {
         addToHistory(g_current_state);
     }
 
-	io.sockets.emit("update", {
-		gameState: g_current_state,
-		state: g_mode,
-		selected: g_selected,
-		starttime: g_starttime,
-		endtime: g_endtime,
-		finished: g_finished
-	});
+    if (changed) {
+        io.sockets.emit("update", {
+            gameState: g_current_state
+        });
+    }
+    else {
+        // letting the users know that everything is right so far
+        io.sockets.emit("on_right_track", {});
+    }
 }
 
 

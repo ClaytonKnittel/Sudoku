@@ -183,9 +183,12 @@ function Tile(props) {
                     : (state.user_color >= 0 ? user_colors[state.user_color].color : "#000000")))
     };
 
-    if (!(props.idx in selected) && (props.highlight_all == val ||
-                ((pencils & (1 << (props.highlight_all - 1))) !== 0) ||
-                ((possibles & (1 << (props.highlight_all - 1)))))) {
+    if (!(props.idx in selected) && (props.highlight_all === val ||
+                (val === 0 &&
+                    (((pencils & (1 << (props.highlight_all - 1))) !== 0) ||
+                     ((possibles & (1 << (props.highlight_all - 1)))))
+                )
+            )) {
         sel_style = {
             backgroundColor: highlight_all_col
         };
@@ -206,7 +209,7 @@ function Tile(props) {
             }}>
             <div className={`number_cell${empty ? '' : ' nonempty'}${given ? ' given' : (val !== 0 ? ' guess' : '')}`}>
                 {val === 0 ? (pencils !== 0 ? (possibles !== 0 ?
-                                <div><Pencils bits={pencils} color={state.user_color}/><Possibles bits={possibles}/></div>
+                                <div><Pencils bits={pencils} color={state.user_color}/><Possibles bits={possibles} color={state.user_color}/></div>
                                 : <Pencils bits={pencils} color={state.user_color}/>)
                         : (possibles !== 0 ? <Possibles bits={possibles} color={state.user_color}/>
                                 : <div style={{display: 'none'}}/>))
@@ -643,12 +646,7 @@ function ClearButton({ gameState, setGameState, state, setBoth, finished, resetF
 function CheckButton({ gameState }) {
     return (<div className="button" onClick={() => {
         let res = checkState(gameState);
-        if (res == NOT_DONE) {
-            alert("Not done yet!");
-            socketio.emit("verify_cells", {token: getToken()});
-        }
-        else if (res == NOT_RIGHT) {
-            alert("Not quite right!");
+        if (res === NOT_DONE || res === NOT_RIGHT) {
             socketio.emit("verify_cells", {token: getToken()});
         }
         else {
@@ -760,12 +758,24 @@ function Screen() {
             window.localStorage.token = data.token;
         });
         socketio.on("update", (data) => {
-            setGameState(data.gameState);
-            setState(data.state);
-            setSelected(data.selected);
-            setStarttime(data.starttime);
-            setEndtime(data.endtime);
-            setFinished(data.finished);
+            if ("gameState" in data) {
+                setGameState(data.gameState);
+            }
+            if ("state" in data) {
+                setState(data.state);
+            }
+            if ("selected" in data) {
+                setSelected(data.selected);
+            }
+            if ("starttime" in data) {
+                setStarttime(data.starttime);
+            }
+            if ("endtime" in data) {
+                setEndtime(data.endtime);
+            }
+            if ("finished" in data) {
+                setFinished(data.finished);
+            }
         });
         socketio.on("fetch_response", (data) => {
             setGameState(data.gameState);
@@ -774,6 +784,9 @@ function Screen() {
             setStarttime(data.starttime);
             setEndtime(data.endtime);
             setFinished(data.finished);
+        });
+        socketio.on("on_right_track", () => {
+            alert("everything seems good so far!");
         });
         socketio.on("no_solutions", () => {
             alert("warning: this puzzle appears to have no solutions");
