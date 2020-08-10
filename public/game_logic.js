@@ -11,6 +11,7 @@ function initTile() {
         pencils: 0,
         possibles: 0,
         given: false,
+        revealed: false,
         user_color: -1
     }
 }
@@ -46,7 +47,7 @@ function copyGameState(oldState) {
 function wellFormed(tileState) {
 	return ('val' in tileState) && ('pencils' in tileState) &&
 		   ('possibles' in tileState) && ('given' in tileState) &&
-		   ('user_color' in tileState);
+		   ('revealed' in tileState) && ('user_color' in tileState);
 }
 
 function gameStatesEqual(s1, s2) {

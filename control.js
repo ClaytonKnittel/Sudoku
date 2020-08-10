@@ -3,7 +3,7 @@ var socketio = require("socket.io"),
 
 const { assert } = require("console");
 
-const { NO_HINT, HINT_LVL1, initGameState, copyGameState, wellFormed, setGivens, _idx, checkGameOver } = require('./public/game_logic');
+const { NO_HINT, HINT_LVL1, HINT_LVL2, HINT_LVL3, initGameState, copyGameState, wellFormed, setGivens, _idx, checkGameOver } = require('./public/game_logic');
 const { NO_SOLUTIONS, NO_UNIQUE_SOLUTION, solveGame, findHint } = require('./game_solver');
 
 
@@ -20,6 +20,8 @@ let g_endtime = -1;
 
 let g_history_idx = 0;
 let g_history = [];
+
+let g_hint_cache;
 
 // map from tokens to user objects
 let g_users = new Map();
@@ -42,22 +44,24 @@ function addUserObj(socket_id) {
 }
 
 
-function addToHistory(gameState) {
-    // append to history
-    if (g_history_idx === g_history.length - 1) {
-        g_history.push(copyGameState(gameState));
-        g_history_idx++;
-    }
-    else {
+function expandHistory(gameState) {
+    if (g_history_idx !== g_history.length - 1) {
         assert(g_history_idx < g_history.length);
 
         for (let i = g_history.length - 2; i >= g_history_idx; i--) {
             // no need to deep copy
             g_history.push(g_history[i]);
         }
-        g_history.push(copyGameState(gameState));
         g_history_idx = g_history.length - 1;
     }
+}
+
+
+function addToHistory(gameState) {
+    // append to history
+    expandHistory(gameState);
+    g_history.push(copyGameState(gameState));
+    g_history_idx = g_history.length - 1;
 }
 
 
@@ -192,7 +196,7 @@ function init(app) {
         });
 
         socket.on("give_hint", (data) => {
-            if (!("token" in data)) {
+            if (!("token" in data) || !("req_level" in data)) {
                 console.log("bad request", data);
                 return;
             }
@@ -219,19 +223,57 @@ function init(app) {
                 return;
             }
 
-            let tile_idx = findHint(g_current_state);
-            if (tile_idx === -1) {
+            let req_level = data.req_level;
+            if (req_level !== g_current_state.hint_state + 1) {
+                // requested hint at level either already covered or past the next level after
+                // the current state
+                return;
+            }
+            if (req_level > HINT_LVL3) {
+                // cannot ask for a hint once a digit has been revealed
+                return
+            }
+
+            // promote this game state to the top of history
+            expandHistory(g_current_state);
+
+            let hint_res;
+            if (g_hint_cache !== undefined && req_level !== HINT_LVL1) {
+                hint_res = g_hint_cache;
+            }
+            else {
+                hint_res = findHint(g_current_state);
+                g_hint_cache = hint_res;
+            }
+
+            if (hint_res === -1) {
                 io.sockets.emit("no_hint", {});
             }
             else {
+                let tile_idx = hint_res.tile_idx;
+                let verbal_hint = hint_res.verbal_hint;
                 let g_idx = _idx(Math.floor(tile_idx / 9), tile_idx % 9);
                 // mark both current state and state in history as hinted
-                g_current_state.hint_state = HINT_LVL1;
-                g_current_state.hinted_tile = g_idx;
-                g_history[g_history_idx].hint_state = HINT_LVL1;
-                g_history[g_history_idx].hinted_tile = g_idx;
+                g_current_state.hint_state = req_level;
+                g_history[g_history_idx].hint_state = req_level;
+
+                if (req_level === HINT_LVL1) {
+                    g_current_state.hinted_tile = g_idx;
+                    g_history[g_history_idx].hinted_tile = g_idx;
+                }
+                else if (req_level === HINT_LVL2) {
+                    g_current_state.verbal_hint = verbal_hint;
+                    g_history[g_history_idx].verbal_hint = verbal_hint;
+                }
+                else /* req_level === HINT_LVL3 */ {
+                    g_current_state.board[g_idx].val = g_solution[tile_idx];
+                    g_current_state.board[g_idx].revealed = true;
+                    gameStateChanged();
+                }
                 io.sockets.emit("update", {
-                    gameState: g_current_state
+                    gameState: g_current_state,
+                    endtime: g_endtime,
+                    finished: g_finished
                 });
             }
         });
@@ -279,7 +321,7 @@ function updateTile(new_state, idx, user) {
     
     if ((s1.val != s2.val || s1.pencils != s2.pencils ||
         s1.possibles != s2.possibles || s1.user_color != s2.user_color)
-            && !s1.given) {
+            && !s1.given && (!s1.revealed && !s2.revealed)) {
 
         s1.val = s2.val;
         s1.pencils = s2.pencils;
@@ -289,6 +331,28 @@ function updateTile(new_state, idx, user) {
         return true;
     }
     return false;
+}
+
+
+/*
+ * checks gameover condition and adds game state to history
+ */
+function gameStateChanged() {
+    if (g_mode === 1 && !g_finished) {
+        if (!g_finished) {
+            g_finished = checkGameOver(g_current_state);
+            if (g_finished) {
+                g_endtime = new Date().getTime();
+            }
+        }
+
+        g_current_state.hinted_tile = -1;
+        g_current_state.hint_state = NO_HINT;
+        delete g_current_state.verbal_hint;
+        g_hint_cache = undefined;
+
+        addToHistory(g_current_state);
+    }
 }
 
 
@@ -370,19 +434,7 @@ function update_game(socket, data) {
 		}
 
 		if (changed) {
-			if (g_mode === 1 && !g_finished) {
-				g_finished = checkGameOver(g_current_state);
-				if (g_finished) {
-					g_endtime = new Date().getTime();
-				}
-			}
-
-			if (g_mode === 1) {
-                g_current_state.hinted_tile = -1;
-                g_current_state.hint_state = NO_HINT;
-
-                addToHistory(g_current_state);
-            }
+			gameStateChanged();
 		}
 	}
 	if ("selected" in data) {

@@ -392,7 +392,7 @@ function findSoln(arr) {
 }
 
 async function solveGame(gameState) {
-    //initializeHardGame(gameState);
+    initializeHardGame(gameState);
     let arr = createSolverState(gameState);
     let soln = findSoln(arr);
     return soln;
@@ -710,7 +710,10 @@ function findHint(gameState) {
     for (let i = 0; i < strategies.length; i++) {
         let res = strategies[i](arr);
         if (res >= 0) {
-            return res;
+            return {
+                tile_idx: res,
+                verbal_hint: "test hint"
+            };
         }
         if (res === CONTINUE) {
             continue;

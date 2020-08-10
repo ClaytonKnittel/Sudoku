@@ -13,6 +13,12 @@ body {
     height: 90vh;
 }
 
+.hint_text {
+    position: absolute;
+    left: 0;
+    top: 20%;
+}
+
 .ctrls {
     position: absolute;
 
@@ -35,6 +41,14 @@ body {
 
     transition: background-color .13s linear;
     background-color: #ffffff;
+
+    /* so you can't highlight the text */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .modeButton:hover {
@@ -68,11 +82,24 @@ body {
 
     transition: background-color .13s linear;
     background-color: #ffffff;
+
+    /* so you can't highlight the text */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .buttonContainer > .button:hover {
     transition: background-color .13s linear;
     background-color: #b4b4b4;
+}
+
+.buttonContainer > .nonHoverable {
+    background-color: #ffffff !important;
+    cursor: default !important;
 }
 
 
@@ -173,7 +200,7 @@ body {
     -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    user-select: none; 
+    user-select: none;
 }
 
 .tile:hover {

@@ -153,6 +153,7 @@ function Tile(props) {
     let pencils = props.hidePencils ? 0 : state.pencils;
     let possibles = props.hidePossibles ? 0 : state.possibles;
     let given = state.given;
+    let revealed = state.revealed;
 
     let selected = props.selected;
     let setSelected = props.setSelected;
@@ -168,7 +169,7 @@ function Tile(props) {
             cols.push(user_colors[idx].selected_color);
         });
     }
-    if (props.gameState.hinted_tile === props.idx) {
+    if (!revealed && props.gameState.hinted_tile === props.idx) {
         cols.push(hinted_color);
     }
     if (cols.length > 0) {
@@ -179,9 +180,12 @@ function Tile(props) {
     }
 
     let color_style = {
-        color: (given ? "#000000" : (incorrect ? "#afafaf"
+        color: (given ? "#000000" : revealed ? "#cc0515" : (incorrect ? "#afafaf"
                     : (state.user_color >= 0 ? user_colors[state.user_color].color : "#000000")))
     };
+    if (revealed) {
+        color_style.textDecoration = "underline";
+    }
 
     if (!(props.idx in selected) && (props.highlight_all === val ||
                 (val === 0 &&
@@ -426,7 +430,8 @@ function Sudoku(props) {
                     all_on = true;
                     for (const idx in selected) {
                         let user_colors = selected[idx];
-                        if (user_colors.includes(props.user_color) && !newState.board[idx].given) {
+                        if (user_colors.includes(props.user_color) && !newState.board[idx].given &&
+                                !newState.board[idx].revealed) {
                             all_on = all_on && (newState.board[idx].val == num);
                         }
                     }
@@ -435,7 +440,8 @@ function Sudoku(props) {
                     }
                     for (const idx in selected) {
                         let user_colors = selected[idx];
-                        if (user_colors.includes(props.user_color) && !newState.board[idx].given) {
+                        if (user_colors.includes(props.user_color) && !newState.board[idx].given &&
+                                !newState.board[idx].revealed) {
                             newState.board[idx].val = num;
                             newState.board[idx].user_color = props.user_color;
                         }
@@ -598,9 +604,9 @@ function Ctrl(props) {
     else if (props.state === 1) {
         return (
             <div className="ctrls">
-                <div className={`modeButton${props.mode == 0 ? ' selectedMode' : ''}`} onClick={() => props.setMode(0)}>guess</div>
-                <div className={`modeButton${props.mode == 1 ? ' selectedMode' : ''}`} onClick={() => props.setMode(1)}>pencil</div>
-                <div className={`modeButton${props.mode == 2 ? ' selectedMode' : ''}`} onClick={() => props.setMode(2)}>possible</div>
+                <div className={`modeButton${props.mode == 0 ? ' selectedMode' : ''}`} onClick={() => props.setMode(0)}>guess (a)</div>
+                <div className={`modeButton${props.mode == 1 ? ' selectedMode' : ''}`} onClick={() => props.setMode(1)}>pencil (s)</div>
+                <div className={`modeButton${props.mode == 2 ? ' selectedMode' : ''}`} onClick={() => props.setMode(2)}>possible (d)</div>
             </div>
         );
     }
@@ -657,10 +663,23 @@ function CheckButton({ gameState }) {
     </div>);
 }
 
-function HintButton() {
-    return (<div className="button" onClick={() => {
-        socketio.emit("give_hint", { token: getToken() });
-    }}>hint</div>);
+function HintButton({ gameState }) {
+    let hintState = gameState.hint_state;
+
+    let style = {};
+    if (hintState === HINT_LVL3) {
+        style.borderColor = "#aaaaaa";
+        style.color = "#aaaaaa";
+    }
+
+    return (<div className={`button${hintState === HINT_LVL3 ? " nonHoverable" : ""}`} style={style} onClick={() => {
+        if (hintState !== HINT_LVL3) {
+            socketio.emit("give_hint", { token: getToken(), req_level: hintState + 1 });
+        }
+    }}>{hintState === NO_HINT ? "hint" :
+        hintState === HINT_LVL1 ? "show strategy" :
+        hintState === HINT_LVL2 ? "give digit" :
+        hintState === HINT_LVL3 ? "hint alredy given" : ""}</div>);
 }
 
 function UndoButton() {
@@ -715,6 +734,22 @@ function GameClock({ startTime, endTime, finished }) {
         }, remainder);
         return (<div style={style}>{str}</div>);
     }
+}
+
+function HintText({ gameState }) {
+    let txt;
+    let style;
+    if (("verbal_hint" in gameState)) {
+        txt = gameState.verbal_hint;
+        style = {};
+    }
+    else {
+        txt = "";
+        style = {
+            display: "none"
+        };
+    }
+    return (<div className="hint_text" style={style}>{txt}</div>);
 }
 
 
@@ -882,7 +917,7 @@ function Screen() {
             <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}
                         finished={finished} resetFn={resetFn}/>
             <CheckButton gameState={gameState}/>
-            <HintButton />
+            <HintButton gameState={gameState}/>
             <UndoButton />
             <RedoButton />
             <HideButton visibleText="hide pencils" hiddenText="show pencils" state={hidePencils}
@@ -891,6 +926,7 @@ function Screen() {
                     setFn={setHidePossibles} />
         </div>
         <GameClock startTime={starttime} endTime={endtime} finished={finished} />
+        <HintText gameState={gameState} />
         <Ctrl state={state} beginGame={beginGame} mode={mode} setMode={setMode}/>
     </div>);
 }
