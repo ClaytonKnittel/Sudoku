@@ -156,6 +156,41 @@ function _idx_to_rc(idx) {
 }
 
 
+/*
+ * calls given callback on each tile in given row, with arguments
+ * (tile, row, col)
+ */
+function gameStateForEachRow(gameState, row_idx, callback) {
+    for (let c = 0; c < 9; c++) {
+        let idx = _idx(row_idx, c);
+        callback(gameState[idx], row_idx, c);
+    }
+}
+
+/*
+ * calls given callback on each tile in given column, with arguments
+ * (tile, row, col)
+ */
+function gameStateForEachCol(gameState, col_idx, callback) {
+    for (let r = 0; r < 9; r++) {
+        let idx = _idx(r, col_idx);
+        callback(gameState[idx], r, col_idx);
+    }
+}
+
+/*
+ * calls given callback on each tile in given box, with arguments
+ * (tile, row, col)
+ */
+function gameStateForEachBox(gameState, box_idx, callback) {
+    for (let i = 0; i < 9; i++) {
+        let idx = 9 * box_idx + i;
+        let [r, c] = _idx_to_rc(idx)
+        callback(gameState[idx], r, c);
+    }
+}
+
+
 const NOT_DONE = 1;
 const NOT_RIGHT = 2;
 const RIGHT = 3;
@@ -234,6 +269,9 @@ try {
     exports.setGivens = setGivens;
     exports._idx = _idx;
     exports._idx_to_rc = _idx_to_rc;
+    exports.gameStateForEachRow = gameStateForEachRow;
+    exports.gameStateForEachCol = gameStateForEachCol;
+    exports.gameStateForEachBox = gameStateForEachBox;
     exports.NOT_DONE = NOT_DONE;
     exports.NOT_RIGHT = NOT_RIGHT;
     exports.RIGHT = RIGHT;

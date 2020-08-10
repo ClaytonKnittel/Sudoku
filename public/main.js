@@ -248,6 +248,28 @@ function Box(props) {
 }
 
 
+function doAutoErase(gameState, idx) {
+    let typed_val = gameState[idx].val;
+    let [r, c] = _idx_to_rc(idx);
+    gameStateForEachRow(gameState, r, (tile) => {
+        if (tile.val === 0) {
+            tile.possibles &= ~(1 << (typed_val - 1));
+        }
+    });
+    gameStateForEachCol(gameState, r, (tile) => {
+        if (tile.val === 0) {
+            tile.possibles &= ~(1 << (typed_val - 1));
+        }
+    });
+    gameStateForEachBox(gameState, r, (tile) => {
+        if (tile.val === 0) {
+            tile.pencils &= ~(1 << (typed_val - 1));
+            tile.possibles &= ~(1 << (typed_val - 1));
+        }
+    });
+}
+
+
 
 function Sudoku(props) {
     let shiftHeld = React.useRef(false);
@@ -445,6 +467,9 @@ function Sudoku(props) {
                                 !newState.board[idx].revealed) {
                             newState.board[idx].val = num;
                             newState.board[idx].user_color = props.user_color;
+                            if (props.autoErase) {
+                                doAutoErase(newState.board, idx);
+                            }
                         }
                     }
                     // get rid of the hint
@@ -786,6 +811,7 @@ function Screen() {
 
     let [hidePencils, setHidePencils] = React.useState(false);
     let [hidePossibles, setHidePossibles] = React.useState(false);
+    let [autoErase, setAutoErase] = React.useState(false);
 
     React.useEffect(() => {
         socketio.on("login_response", (data) => {
@@ -912,7 +938,7 @@ function Screen() {
             <Sudoku gameState={gameState} setGameState={changeGameState} state={state} mode={mode}
                     user_color={user_color.current} selected={selected} setSelected={changeSelected}
                     lastTileClicked={lastTileClicked} finished={finished} hidePencils={hidePencils}
-                    hidePossibles={hidePossibles} />
+                    hidePossibles={hidePossibles} autoErase={autoErase} />
         </div>
         <div className="buttonContainer">
             <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}
@@ -925,6 +951,8 @@ function Screen() {
                     setFn={setHidePencils} />
             <HideButton visibleText="hide possibles" hiddenText="show possibles" state={hidePossibles}
                     setFn={setHidePossibles} />
+            <HideButton visibleText="enable auto-erase" hiddenText="disable auto-erase" state={autoErase}
+                    setFn={setAutoErase} />
         </div>
         <GameClock startTime={starttime} endTime={endtime} finished={finished} />
         <HintText gameState={gameState} />

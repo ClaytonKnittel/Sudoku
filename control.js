@@ -382,7 +382,10 @@ function update_game(socket, data) {
 			g_solution = 0;
 			g_finished = false;
 			g_history_idx = 0;
-			g_history = [];
+            g_history = [];
+            delete g_current_state.hint_cache;
+            g_current_state.hint_state = NO_HINT;
+            g_current_state.hinted_tile = -1;
 
 			if (g_mode === 1) {
 				// unset all givens
