@@ -712,12 +712,14 @@ function findHint(gameState) {
     let arr = createSolverState(gameState);
     eliminate(arr);
     let max_strat = 0;
-    // console.log("hint");
-    // printGame(arr);
+    console.log("hint");
+    printGame(arr);
 
     for (let i = 0; i < strategies.length; i++) {
         let res = strategies[i](arr);
         if (res >= 0) {
+            console.log("done");
+            printGame(arr);
             return {
                 tile_idx: res,
                 verbal_hint: strategy_strings[max_strat]
@@ -735,8 +737,6 @@ function findHint(gameState) {
             continue;
         }
     }
-    // console.log("done");
-    // printGame(arr);
 
     return -1;
 }

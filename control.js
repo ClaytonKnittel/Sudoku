@@ -21,8 +21,6 @@ let g_endtime = -1;
 let g_history_idx = 0;
 let g_history = [];
 
-let g_hint_cache;
-
 // map from tokens to user objects
 let g_users = new Map();
 let g_socket_id_to_tokens = new Map();
@@ -44,13 +42,19 @@ function addUserObj(socket_id) {
 }
 
 
-function expandHistory(gameState) {
+function expandHistory() {
     if (g_history_idx !== g_history.length - 1) {
         assert(g_history_idx < g_history.length);
 
         for (let i = g_history.length - 2; i >= g_history_idx; i--) {
             // no need to deep copy
-            g_history.push(g_history[i]);
+            let itm = {
+                gameState: g_history[i].gameState
+            };
+            if ('hint_cache' in g_history[i]) {
+                itm.hint_cache = {...g_history[i].hint_cache};
+            }
+            g_history.push(itm);
         }
         g_history_idx = g_history.length - 1;
     }
@@ -59,8 +63,12 @@ function expandHistory(gameState) {
 
 function addToHistory(gameState) {
     // append to history
-    expandHistory(gameState);
-    g_history.push(copyGameState(gameState));
+    expandHistory();
+
+    let itm = {
+        gameState: copyGameState(gameState)
+    };
+    g_history.push(itm);
     g_history_idx = g_history.length - 1;
 }
 
@@ -164,7 +172,7 @@ function init(app) {
             }
 
             g_history_idx--;
-            g_current_state = copyGameState(g_history[g_history_idx]);
+            g_current_state = copyGameState(g_history[g_history_idx].gameState);
 
             io.sockets.emit("update", {
                 gameState: g_current_state
@@ -188,7 +196,7 @@ function init(app) {
             }
 
             g_history_idx++;
-            g_current_state = copyGameState(g_history[g_history_idx]);
+            g_current_state = copyGameState(g_history[g_history_idx].gameState);
 
             io.sockets.emit("update", {
                 gameState: g_current_state
@@ -235,15 +243,15 @@ function init(app) {
             }
 
             // promote this game state to the top of history
-            expandHistory(g_current_state);
+            expandHistory();
 
             let hint_res;
-            if (g_hint_cache !== undefined && req_level !== HINT_LVL1) {
-                hint_res = g_hint_cache;
+            if (('hint_cache' in g_history[g_history_idx]) && req_level !== HINT_LVL1) {
+                hint_res = g_history[g_history_idx].hint_cache;
             }
             else {
                 hint_res = findHint(g_current_state);
-                g_hint_cache = hint_res;
+                g_history[g_history_idx].hint_cache = hint_res;
             }
 
             if (hint_res === -1) {
@@ -255,15 +263,15 @@ function init(app) {
                 let g_idx = _idx(Math.floor(tile_idx / 9), tile_idx % 9);
                 // mark both current state and state in history as hinted
                 g_current_state.hint_state = req_level;
-                g_history[g_history_idx].hint_state = req_level;
+                g_history[g_history_idx].gameState.hint_state = req_level;
 
                 if (req_level === HINT_LVL1) {
                     g_current_state.hinted_tile = g_idx;
-                    g_history[g_history_idx].hinted_tile = g_idx;
+                    g_history[g_history_idx].gameState.hinted_tile = g_idx;
                 }
                 else if (req_level === HINT_LVL2) {
                     g_current_state.verbal_hint = verbal_hint;
-                    g_history[g_history_idx].verbal_hint = verbal_hint;
+                    g_history[g_history_idx].gameState.verbal_hint = verbal_hint;
                 }
                 else /* req_level === HINT_LVL3 */ {
                     g_current_state.board[g_idx].val = g_solution[tile_idx];
@@ -349,7 +357,6 @@ function gameStateChanged() {
         g_current_state.hinted_tile = -1;
         g_current_state.hint_state = NO_HINT;
         delete g_current_state.verbal_hint;
-        g_hint_cache = undefined;
 
         addToHistory(g_current_state);
     }
@@ -400,7 +407,9 @@ function update_game(socket, data) {
 			});
 
 			g_current_state = setGivens(g_current_state);
-			g_history.push(copyGameState(g_current_state));
+			g_history.push({
+                gameState: copyGameState(g_current_state)
+            });
 			g_history_idx = 0;
 		}
 		g_mode = data.state;

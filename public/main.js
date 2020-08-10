@@ -219,6 +219,7 @@ function Tile(props) {
                                 : <div style={{display: 'none'}}/>))
                 : <div style={color_style}>{val}</div>}
             </div>
+            <div className="pouting_face" style={revealed ? {} : { display: "none" }}>🥺</div>
         </span>);
 }
 
