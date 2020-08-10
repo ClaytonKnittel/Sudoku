@@ -392,7 +392,7 @@ function findSoln(arr) {
 }
 
 async function solveGame(gameState) {
-    //initializeHardGame(gameState);
+    // initializeHardGame(gameState);
     let arr = createSolverState(gameState);
     let soln = findSoln(arr);
     return soln;
@@ -700,19 +700,27 @@ const strategies = [
     hiddenSets
 ];
 
+const strategy_strings = [
+    "There is a naked single",
+    "There is a hidden single",
+    "There is a naked set",
+    "There is a hidden set"
+];
+
 
 function findHint(gameState) {
     let arr = createSolverState(gameState);
     eliminate(arr);
-    console.log("hint");
-    printGame(arr);
+    let max_strat = 0;
+    // console.log("hint");
+    // printGame(arr);
 
     for (let i = 0; i < strategies.length; i++) {
         let res = strategies[i](arr);
         if (res >= 0) {
             return {
                 tile_idx: res,
-                verbal_hint: "test hint"
+                verbal_hint: strategy_strings[max_strat]
             };
         }
         if (res === CONTINUE) {
@@ -721,13 +729,14 @@ function findHint(gameState) {
         if (res === FOUND_RESTRICTION) {
             // restart search
             console.log("found res");
-            printGame(arr);
+            // printGame(arr);
+            max_strat = i;
             i = -1;
             continue;
         }
     }
-    console.log("done");
-    printGame(arr);
+    // console.log("done");
+    // printGame(arr);
 
     return -1;
 }
