@@ -256,12 +256,12 @@ function doAutoErase(gameState, idx) {
             tile.possibles &= ~(1 << (typed_val - 1));
         }
     });
-    gameStateForEachCol(gameState, r, (tile) => {
+    gameStateForEachCol(gameState, c, (tile) => {
         if (tile.val === 0) {
             tile.possibles &= ~(1 << (typed_val - 1));
         }
     });
-    gameStateForEachBox(gameState, r, (tile) => {
+    gameStateForEachBox(gameState, Math.floor(idx / 9), (tile) => {
         if (tile.val === 0) {
             tile.pencils &= ~(1 << (typed_val - 1));
             tile.possibles &= ~(1 << (typed_val - 1));
