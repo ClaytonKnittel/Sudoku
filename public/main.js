@@ -253,11 +253,13 @@ function doAutoErase(gameState, idx) {
     let [r, c] = _idx_to_rc(idx);
     gameStateForEachRow(gameState, r, (tile) => {
         if (tile.val === 0) {
+            tile.pencils &= ~(1 << (typed_val - 1));
             tile.possibles &= ~(1 << (typed_val - 1));
         }
     });
     gameStateForEachCol(gameState, c, (tile) => {
         if (tile.val === 0) {
+            tile.pencils &= ~(1 << (typed_val - 1));
             tile.possibles &= ~(1 << (typed_val - 1));
         }
     });
