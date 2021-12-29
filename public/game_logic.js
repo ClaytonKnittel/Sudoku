@@ -12,6 +12,7 @@ function initTile() {
         possibles: 0,
         given: false,
         revealed: false,
+        cage_idx: -1,
         user_color: -1
     }
 }
@@ -26,7 +27,15 @@ function initGameState() {
 
         hint_state: NO_HINT,
         // to be set to [0-80] when a tile is given as a hint
-        hinted_tile: -1
+        hinted_tile: -1,
+
+        // a list of the totals of the cages in the game state along with a list of all tile
+        // indexes of the tiles within the cage, indexed by cage_idx
+        // {
+        //    sum: <cage sum>,
+        //    tiles: [<tile_1>, ...]
+        // }
+        cages: []
     }
 }
 
@@ -47,12 +56,20 @@ function copyGameState(oldState) {
 function wellFormed(tileState) {
 	return ('val' in tileState) && ('pencils' in tileState) &&
 		   ('possibles' in tileState) && ('given' in tileState) &&
-		   ('revealed' in tileState) && ('user_color' in tileState);
+		   ('revealed' in tileState) && ('cage_idx' in tileState) &&
+           ('user_color' in tileState);
+}
+
+function wellFormedCage(cageState) {
+    return ('sum' in cageState) && ('tiles' in cageState) &&
+            (typeof cageState.tiles == "object") && ('length' in cageState.tiles);
 }
 
 function gameStatesEqual(s1, s2) {
-    if (!("board" in s1) || !("hinted_tile" in s1) || !("hint_state" in s1) ||
-            !("board" in s1) || !("hinted_tile" in s1) || !("hint_state" in s1)) {
+    if (!("board" in s1) || !("hinted_tile" in s1) ||
+            !("hint_state" in s1) || !("cages" in s1) ||
+            !("board" in s1) || !("hinted_tile" in s1) ||
+            !("hint_state" in s1) || !("cages" in s2)) {
         return false;
     }
 	if (s1.board.length !== s2.board.length) {
@@ -71,10 +88,28 @@ function gameStatesEqual(s1, s2) {
 
 		if (t1.val != t2.val || t1.pencils != t2.pencils ||
 				t1.possibles != t2.possibles || t1.given != t2.given ||
-				t1.user_color != t2.user_color) {
+				t1.cage_idx != t2.cage_idx || t1.user_color != t2.user_color) {
 			return false;
 		}
 	}
+    for (let i = 0; i < s1.cages.length; i++) {
+        let c1 = s1.cages[i];
+        let c2 = s2.cages[i];
+
+        if (!wellFormedCage(c1) || !wellFormedCage(c2)) {
+            return false;
+        }
+
+        if (c1.sum != c2.sum || c1.tiles.length !== c2.tiles.length) {
+            return false;
+        }
+
+        for (let j = 0; j < c1.tiles.length; j++) {
+            if (c1.tiles[j] != c2.tiles[j]) {
+                return false;
+            }
+        }
+    }
 	return true;
 }
 
@@ -190,6 +225,19 @@ function gameStateForEachBox(gameState, box_idx, callback) {
     }
 }
 
+/*
+ * calls given callback on each tile in given cage, with arguments
+ * (tile, row, col)
+ */
+function gameStateForEachCage(gameState, cage_idx, callback) {
+    cage = gameState.cages[cage_idx];
+    for (let i = 0; i < cage.tiles.length; i++) {
+        let idx = cage.tiles[i];
+        let [r, c] = _idx_to_rc(idx)
+        callback(gameState[idx], r, c);
+    }
+}
+
 
 const NOT_DONE = 1;
 const NOT_RIGHT = 2;
@@ -208,7 +256,7 @@ function checkState(gameState) {
             }
             m |= (1 << (val - 1));
         }
-        if (m != 511) {
+        if (m != 0x1ff) {
             return NOT_RIGHT;
         }
     }
@@ -222,7 +270,7 @@ function checkState(gameState) {
             }
             m |= (1 << (val - 1));
         }
-        if (m != 511) {
+        if (m != 0x1ff) {
             return NOT_RIGHT;
         }
     }
@@ -239,7 +287,30 @@ function checkState(gameState) {
             }
             m |= (1 << (val - 1));
         }
-        if (m != 511) {
+        if (m != 0x1ff) {
+            return NOT_RIGHT;
+        }
+    }
+    // check cages
+    for (let c = 0; c < gameState.cages.length; c++) {
+        let cage = gameState.cages[c];
+        let m = 0;
+        let s = 0;
+        for (let i = 0; i < cage.tiles.length; i++) {
+            let [r, c] = _idx_to_rc(cage.tiles[i]);
+
+            let val = gameBoard[cage.tiles[i]];
+            if (val == 0) {
+                return NOT_DONE;
+            }
+            if ((m & (1 << (val - 1))) != 0) {
+                return NOT_RIGHT;
+            }
+
+            m |= (1 << (val - 1));
+            s += val;
+        }
+        if (s != cage.sum) {
             return NOT_RIGHT;
         }
     }
@@ -272,6 +343,7 @@ try {
     exports.gameStateForEachRow = gameStateForEachRow;
     exports.gameStateForEachCol = gameStateForEachCol;
     exports.gameStateForEachBox = gameStateForEachBox;
+    exports.gameStateForEachCage = gameStateForEachCage;
     exports.NOT_DONE = NOT_DONE;
     exports.NOT_RIGHT = NOT_RIGHT;
     exports.RIGHT = RIGHT;
