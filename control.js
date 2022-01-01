@@ -3,7 +3,7 @@ var socketio = require("socket.io"),
 
 const { assert } = require("console");
 
-const { NO_HINT, HINT_LVL1, HINT_LVL2, HINT_LVL3, initGameState, copyGameState, wellFormed, setGivens, _idx, checkGameOver } = require('./public/game_logic');
+const { NO_HINT, HINT_LVL1, HINT_LVL2, HINT_LVL3, initGameState, copyGameState, wellFormed, setGivens, _idx, checkGameOver } = require('./src/game_logic');
 const { NO_SOLUTIONS, NO_UNIQUE_SOLUTION, solveGame, findHint } = require('./game_solver');
 
 

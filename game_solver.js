@@ -1,5 +1,5 @@
 
-const { _idx } = require('./public/game_logic');
+const { _idx } = require('./src/game_logic');
 
 const NO_SOLUTIONS = 0;
 const NO_UNIQUE_SOLUTION = 1;
@@ -392,7 +392,7 @@ function findSoln(arr) {
 }
 
 async function solveGame(gameState) {
-    // initializeHardGame(gameState);
+    initializeHardGame(gameState);
     let arr = createSolverState(gameState);
     let soln = findSoln(arr);
     return soln;

@@ -1,6 +1,9 @@
 
-var socketio = io.connect();
+import React from 'react';
+import ReactDOM from 'react-dom';
 
+var gl = require("./game_logic.js");
+var socketio = io.connect();
 
 // global var, whatever
 let g_key_callback = () => {};
@@ -250,20 +253,20 @@ function Box(props) {
 
 function doAutoErase(gameState, idx) {
     let typed_val = gameState[idx].val;
-    let [r, c] = _idx_to_rc(idx);
-    gameStateForEachRow(gameState, r, (tile) => {
+    let [r, c] = gl._idx_to_rc(idx);
+    gl.gameStateForEachRow(gameState, r, (tile) => {
         if (tile.val === 0) {
             tile.pencils &= ~(1 << (typed_val - 1));
             tile.possibles &= ~(1 << (typed_val - 1));
         }
     });
-    gameStateForEachCol(gameState, c, (tile) => {
+    gl.gameStateForEachCol(gameState, c, (tile) => {
         if (tile.val === 0) {
             tile.pencils &= ~(1 << (typed_val - 1));
             tile.possibles &= ~(1 << (typed_val - 1));
         }
     });
-    gameStateForEachBox(gameState, Math.floor(idx / 9), (tile) => {
+    gl.gameStateForEachBox(gameState, Math.floor(idx / 9), (tile) => {
         if (tile.val === 0) {
             tile.pencils &= ~(1 << (typed_val - 1));
             tile.possibles &= ~(1 << (typed_val - 1));
@@ -289,7 +292,7 @@ function Sudoku(props) {
     let finished = props.finished;
 
     let selectTile = (idx) => {
-        let selectedDup = dupArrayMap(selected);
+        let selectedDup = gl.dupArrayMap(selected);
         let is_in = (idx in selectedDup);
         let is_in_lis = false;
         if (is_in) {
@@ -310,9 +313,9 @@ function Sudoku(props) {
         }
         lastTileCLicked.current = -1;
         if (!shiftHeld.current) {
-            deleteAllSelected(selectedDup, props.user_color);
+            gl.deleteAllSelected(selectedDup, props.user_color);
         }
-        if (!is_in_lis || (!shiftHeld.current && numSelected(selected, props.user_color) > 1)) {
+        if (!is_in_lis || (!shiftHeld.current && gl.numSelected(selected, props.user_color) > 1)) {
             lastTileCLicked.current = idx;
             if (!(idx in selectedDup)) {
                 selectedDup[idx] = [props.user_color];
@@ -350,14 +353,14 @@ function Sudoku(props) {
                 is_in_lis = is_in_lis || (user_color === props.user_color);
             });
             if (!is_in_lis) {
-                let selectedDup = dupArrayMap(selected);
+                let selectedDup = gl.dupArrayMap(selected);
                 // only add to the list if it wasn't already in there
                 selectedDup[idx].push(props.user_color);
                 setSelected(selectedDup);
             }
         }
         else {
-            let selectedDup = dupArrayMap(selected);
+            let selectedDup = gl.dupArrayMap(selected);
             selectedDup[idx] = [props.user_color];
             setSelected(selectedDup);
         }
@@ -369,12 +372,12 @@ function Sudoku(props) {
         if (lastTileCLicked.current === -1) {
             return;
         }
-        let selectedDup = dupArrayMap(selected);
-        deleteAllSelected(selectedDup, props.user_color);
-        let [r, c] = _idx_to_rc(lastTileCLicked.current);
+        let selectedDup = gl.dupArrayMap(selected);
+        gl.deleteAllSelected(selectedDup, props.user_color);
+        let [r, c] = gl._idx_to_rc(lastTileCLicked.current);
         r = (r + dy) % 9;
         c = (c + dx) % 9;
-        let new_idx = _idx(r, c);
+        let new_idx = gl._idx(r, c);
         lastTileCLicked.current = new_idx;
         if (!(new_idx in selectedDup)) {
             selectedDup[new_idx] = [props.user_color];
@@ -386,7 +389,7 @@ function Sudoku(props) {
     }
 
     let new_key_cb = (e) => {
-        let newState = copyGameState(gameState);
+        let newState = gl.copyGameState(gameState);
 
         if (e.key === "Shift") {
             shiftHeld.current = true;
@@ -476,7 +479,7 @@ function Sudoku(props) {
                     }
                     // get rid of the hint
                     newState.hinted_tile = -1;
-                    newState.hint_level = NO_HINT;
+                    newState.hint_level = gl.NO_HINT;
                     break;
                 case 1:
                     all_on = true;
@@ -538,7 +541,7 @@ function Sudoku(props) {
         mouseClickPos.current = [e.pageX, e.pageY];
         if (!document.getElementById('board').contains(e.target)){
             let selectedDup = {...selected};
-            deleteAllSelected(selectedDup, props.user_color);
+            gl.deleteAllSelected(selectedDup, props.user_color);
             setSelected(selectedDup);
         }
     }
@@ -646,9 +649,9 @@ function clearState(gameState, setGameState, setBoth, finished, resetFn) {
     if (finished) {
         resetFn();
     }
-    else if (!anyNonGivens(gameState)) {
+    else if (!gl.anyNonGivens(gameState)) {
         // set all givens back to non-givens
-        state = copyGameState(gameState);
+        state = gl.copyGameState(gameState);
         for (let i = 0; i < state.board.length; i++) {
             let tileState = state.board[i];
             tileState.given = false;
@@ -656,11 +659,11 @@ function clearState(gameState, setGameState, setBoth, finished, resetFn) {
         setBoth(0, state);
     }
     else {
-        state = copyGameState(gameState);
+        state = gl.copyGameState(gameState);
         for (let i = 0; i < state.board.length; i++) {
             let tileState = state.board[i];
             if (!(tileState.given)) {
-                state.board[i] = initTile();
+                state.board[i] = gl.initTile();
             }
         }
         setGameState(state);
@@ -672,15 +675,15 @@ function ClearButton({ gameState, setGameState, state, setBoth, finished, resetF
     return (<div className="button" onClick={() => {
         clearState(gameState, setGameState, setBoth, finished, resetFn);
     }}>
-        {finished ? "reset" : ((anyNonGivens(gameState) || state == 0) ? "clear" : "re-enter")}
+        {finished ? "reset" : ((gl.anyNonGivens(gameState) || state == 0) ? "clear" : "re-enter")}
     </div>);
 }
 
 
 function CheckButton({ gameState }) {
     return (<div className="button" onClick={() => {
-        let res = checkState(gameState);
-        if (res === NOT_DONE || res === NOT_RIGHT) {
+        let res = gl.checkState(gameState);
+        if (res === gl.NOT_DONE || res === gl.NOT_RIGHT) {
             socketio.emit("verify_cells", {token: getToken()});
         }
         else {
@@ -695,19 +698,19 @@ function HintButton({ gameState }) {
     let hintState = gameState.hint_state;
 
     let style = {};
-    if (hintState === HINT_LVL3) {
+    if (hintState === gl.HINT_LVL3) {
         style.borderColor = "#aaaaaa";
         style.color = "#aaaaaa";
     }
 
-    return (<div className={`button${hintState === HINT_LVL3 ? " nonHoverable" : ""}`} style={style} onClick={() => {
-        if (hintState !== HINT_LVL3) {
+    return (<div className={`button${hintState === gl.HINT_LVL3 ? " nonHoverable" : ""}`} style={style} onClick={() => {
+        if (hintState !== gl.HINT_LVL3) {
             socketio.emit("give_hint", { token: getToken(), req_level: hintState + 1 });
         }
-    }}>{hintState === NO_HINT ? "hint" :
-        hintState === HINT_LVL1 ? "show strategy" :
-        hintState === HINT_LVL2 ? "give digit" :
-        hintState === HINT_LVL3 ? "hint alredy given" : ""}</div>);
+    }}>{hintState === gl.NO_HINT ? "hint" :
+        hintState === gl.HINT_LVL1 ? "show strategy" :
+        hintState === gl.HINT_LVL2 ? "give digit" :
+        hintState === gl.HINT_LVL3 ? "hint alredy given" : ""}</div>);
 }
 
 function UndoButton() {
@@ -797,7 +800,7 @@ function Screen() {
     // for game play, 0-2
     let [mode, setMode] = React.useState(0);
 
-    let [gameState, setGameState] = React.useState(initGameState());
+    let [gameState, setGameState] = React.useState(gl.initGameState());
 
     let [selected, setSelected] = React.useState({});
 
@@ -917,13 +920,13 @@ function Screen() {
 
 
     let beginGame = () => {
-        let gsc = setGivens(gameState);
+        let gsc = gl.setGivens(gameState);
         setBoth(1, gsc);
     };
 
     let resetFn = () => {
         setState(0);
-        setGameState(initGameState());
+        setGameState(gl.initGameState());
         socketio.emit("reset", {
             token: getToken()
         });

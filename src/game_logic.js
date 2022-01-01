@@ -322,34 +322,30 @@ function checkGameOver(gameState) {
     return checkState(gameState) == RIGHT;
 }
 
-
-try {
-    exports.NO_HINT = NO_HINT,
-    exports.HINT_LVL1 = HINT_LVL1,
-    exports.HINT_LVL2 = HINT_LVL2,
-    exports.HINT_LVL3 = HINT_LVL3,
-    exports.initTile = initTile;
-    exports.initGameState = initGameState;
-    exports.copyGameState = copyGameState;
-    exports.wellFormed = wellFormed;
-    exports.gameStatesEqual = gameStatesEqual;
-    exports.deleteAllSelected = deleteAllSelected;
-    exports.dupArrayMap = dupArrayMap;
-    exports.numSelected = numSelected;
-    exports.anyNonGivens = anyNonGivens;
-    exports.setGivens = setGivens;
-    exports._idx = _idx;
-    exports._idx_to_rc = _idx_to_rc;
-    exports.gameStateForEachRow = gameStateForEachRow;
-    exports.gameStateForEachCol = gameStateForEachCol;
-    exports.gameStateForEachBox = gameStateForEachBox;
-    exports.gameStateForEachCage = gameStateForEachCage;
-    exports.NOT_DONE = NOT_DONE;
-    exports.NOT_RIGHT = NOT_RIGHT;
-    exports.RIGHT = RIGHT;
-    exports.checkState = checkState;
-    exports.checkGameOver = checkGameOver;
-} catch (ReferenceError) {
-    // not node.js
-}
-
+module.exports = {
+    NO_HINT: NO_HINT,
+    HINT_LVL1: HINT_LVL1,
+    HINT_LVL2: HINT_LVL2,
+    HINT_LVL3: HINT_LVL3,
+    initTile: initTile,
+    initGameState: initGameState,
+    copyGameState: copyGameState,
+    wellFormed: wellFormed,
+    gameStatesEqual: gameStatesEqual,
+    deleteAllSelected: deleteAllSelected,
+    dupArrayMap: dupArrayMap,
+    numSelected: numSelected,
+    anyNonGivens: anyNonGivens,
+    setGivens: setGivens,
+    _idx: _idx,
+    _idx_to_rc: _idx_to_rc,
+    gameStateForEachRow: gameStateForEachRow,
+    gameStateForEachCol: gameStateForEachCol,
+    gameStateForEachBox: gameStateForEachBox,
+    gameStateForEachCage: gameStateForEachCage,
+    NOT_DONE: NOT_DONE,
+    NOT_RIGHT: NOT_RIGHT,
+    RIGHT: RIGHT,
+    checkState: checkState,
+    checkGameOver: checkGameOver,
+};
