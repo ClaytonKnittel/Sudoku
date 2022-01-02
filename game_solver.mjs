@@ -73,9 +73,12 @@ function initializeHardGame(gameState) {
 
     gameState.board[0].cage_idx = 0;
     gameState.board[1].cage_idx = 0;
+    gameState.board[2].cage_idx = 0;
+    gameState.board[3].cage_idx = 0;
+    gameState.board[4].cage_idx = 0;
     gameState.cages.push({
-        sum: 11,
-        tiles: [0, 1]
+        sum: 25,
+        tiles: [0, 1, 2, 3, 4]
     });
 }
 

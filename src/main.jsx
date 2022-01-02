@@ -215,11 +215,11 @@ function CageOutline(props) {
         left: 0,
         top: 0,
 
-        borderBottom: connect_left && !connect_tl ? border_color : "transparent",
+        borderBottom: connect_left && !(connect_tl && connect_top) ? border_color : "transparent",
         borderBottomStyle: "dotted",
         borderBottomWidth: "1px",
 
-        borderRight: connect_top && !connect_tl ? border_color : "transparent",
+        borderRight: connect_top && !(connect_tl && connect_left) ? border_color : "transparent",
         borderRightStyle: "dotted",
         borderRightWidth: "1px",
 
@@ -232,11 +232,11 @@ function CageOutline(props) {
         right: 0,
         top: 0,
 
-        borderBottom: connect_right && !connect_tr ? border_color : "transparent",
+        borderBottom: connect_right && !(connect_tr && connect_top) ? border_color : "transparent",
         borderBottomStyle: "dotted",
         borderBottomWidth: "1px",
 
-        borderLeft: connect_top && !connect_tr ? border_color : "transparent",
+        borderLeft: connect_top && !(connect_tr && connect_right) ? border_color : "transparent",
         borderLeftStyle: "dotted",
         borderLeftWidth: "1px",
 
@@ -249,11 +249,11 @@ function CageOutline(props) {
         left: 0,
         bottom: 0,
 
-        borderTop: connect_left && !connect_bl ? border_color : "transparent",
+        borderTop: connect_left && !(connect_bl && connect_bottom) ? border_color : "transparent",
         borderTopStyle: "dotted",
         borderTopWidth: "1px",
 
-        borderRight: connect_bottom && !connect_bl ? border_color : "transparent",
+        borderRight: connect_bottom && !(connect_bl && connect_left) ? border_color : "transparent",
         borderRightStyle: "dotted",
         borderRightWidth: "1px",
 
@@ -266,11 +266,11 @@ function CageOutline(props) {
         right: 0,
         bottom: 0,
 
-        borderTop: connect_right && !connect_br ? border_color : "transparent",
+        borderTop: connect_right && !(connect_br && connect_bottom) ? border_color : "transparent",
         borderTopStyle: "dotted",
         borderTopWidth: "1px",
 
-        borderLeft: connect_bottom && !connect_br ? border_color : "transparent",
+        borderLeft: connect_bottom && !(connect_br && connect_right) ? border_color : "transparent",
         borderLeftStyle: "dotted",
         borderLeftWidth: "1px",
 
