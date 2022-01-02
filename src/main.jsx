@@ -23,7 +23,8 @@ import { NO_HINT,
          gameStateForEachCage,
          NOT_DONE,
          NOT_RIGHT,
-         checkState } from "./game_logic.mjs";
+         checkState, 
+         isCageTotalCell} from "./game_logic.mjs";
 
 var socketio = io().connect();
 
@@ -118,10 +119,28 @@ function Pencils(props) {
         {bottom: 0, left: "66.666%", transform: "translateX(-50%)"},
         {bottom: 0, right: 0}
     ];
+    const styles10 = [
+        {top: 0, left: 0},
+        {top: 0, left: "25%", transform: "translateX(-50%)"},
+        {top: 0, left: "50%", transform: "translateX(-50%)"},
+        {top: 0, left: "75%", transform: "translateX(-50%)"},
+        {top: 0, right: 0},
+        {bottom: 0, left: 0},
+        {bottom: 0, left: "25%", transform: "translateX(-50%)"},
+        {bottom: 0, left: "50%", transform: "translateX(-50%)"},
+        {bottom: 0, left: "75%", transform: "translateX(-50%)"},
+        {bottom: 0, right: 0}
+    ];
+
+    const isTotalCell = isCageTotalCell(props.gameState, props.idx);
 
     let count = 0;
     for (let i = 0; i < 9; i++) {
         count += ((props.bits >> i) & 1);
+    }
+
+    if (isTotalCell) {
+        count++;
     }
 
     let color_style = user_colors[props.color];
@@ -136,12 +155,19 @@ function Pencils(props) {
     else if (count <= 8) {
         styles = styles8;
     }
-    else {
+    else if (count <= 9) {
         styles = styles9;
+    }
+    else {
+        styles = styles10;
     }
 
     let lis = [];
     let n = 0;
+    if (isTotalCell) {
+        lis.push(<span className="pencil" style={{...color_style, ...styles[n]}} />);
+        n++;
+    }
     for (let i = 0; i < 9; i++) {
         if (((props.bits >> i) & 1) === 1) {
             lis.push(<span key={i} className="pencil" style={{...color_style, ...styles[n]}}>{i + 1}</span>);
@@ -167,6 +193,143 @@ function Possibles(props) {
     </div>);
 }
 
+function CageOutline(props) {
+    const cage_border_space = 6;
+    const border_color = "black";
+
+    const [r, c] = _idx_to_rc(props.idx);
+    const cage_idx = props.gameState.board[props.idx].cage_idx;
+
+    let connect_left = (c > 0 && props.gameState.board[_idx(r, c - 1)].cage_idx === cage_idx);
+    let connect_right = (c < 8 && props.gameState.board[_idx(r, c + 1)].cage_idx === cage_idx);
+    let connect_top = (r > 0 && props.gameState.board[_idx(r - 1, c)].cage_idx === cage_idx);
+    let connect_bottom = (r < 8 && props.gameState.board[_idx(r + 1, c)].cage_idx === cage_idx);
+
+    let connect_tl = (c > 0 && r > 0 && props.gameState.board[_idx(r - 1, c - 1)].cage_idx === cage_idx);
+    let connect_tr = (c < 8 && r > 0 && props.gameState.board[_idx(r - 1, c + 1)].cage_idx === cage_idx);
+    let connect_bl = (c > 0 && r < 8 && props.gameState.board[_idx(r + 1, c - 1)].cage_idx === cage_idx);
+    let connect_br = (c < 8 && r < 8 && props.gameState.board[_idx(r + 1, c + 1)].cage_idx === cage_idx);
+
+    const tl_style = {
+        position: "absolute",
+        left: 0,
+        top: 0,
+
+        borderBottom: connect_left && !connect_tl ? border_color : "transparent",
+        borderBottomStyle: "dotted",
+        borderBottomWidth: "1px",
+
+        borderRight: connect_top && !connect_tl ? border_color : "transparent",
+        borderRightStyle: "dotted",
+        borderRightWidth: "1px",
+
+        width: `${cage_border_space}%`,
+        height: `${cage_border_space}%`
+    };
+
+    const tr_style = {
+        position: "absolute",
+        right: 0,
+        top: 0,
+
+        borderBottom: connect_right && !connect_tr ? border_color : "transparent",
+        borderBottomStyle: "dotted",
+        borderBottomWidth: "1px",
+
+        borderLeft: connect_top && !connect_tr ? border_color : "transparent",
+        borderLeftStyle: "dotted",
+        borderLeftWidth: "1px",
+
+        width: `${cage_border_space}%`,
+        height: `${cage_border_space}%`
+    };
+
+    const bl_style = {
+        position: "absolute",
+        left: 0,
+        bottom: 0,
+
+        borderTop: connect_left && !connect_bl ? border_color : "transparent",
+        borderTopStyle: "dotted",
+        borderTopWidth: "1px",
+
+        borderRight: connect_bottom && !connect_bl ? border_color : "transparent",
+        borderRightStyle: "dotted",
+        borderRightWidth: "1px",
+
+        width: `${cage_border_space}%`,
+        height: `${cage_border_space}%`
+    };
+
+    const br_style = {
+        position: "absolute",
+        right: 0,
+        bottom: 0,
+
+        borderTop: connect_right && !connect_br ? border_color : "transparent",
+        borderTopStyle: "dotted",
+        borderTopWidth: "1px",
+
+        borderLeft: connect_bottom && !connect_br ? border_color : "transparent",
+        borderLeftStyle: "dotted",
+        borderLeftWidth: "1px",
+
+        width: `${cage_border_space}%`,
+        height: `${cage_border_space}%`
+    };
+
+    const ct_style = {
+        position: "absolute",
+        left: `${cage_border_space}%`,
+        top: `${cage_border_space}%`,
+
+        borderTop: !connect_top ? border_color : "transparent",
+        borderTopStyle: "dotted",
+        borderTopWidth: "1px",
+
+        borderLeft: !connect_left ? border_color : "transparent",
+        borderLeftStyle: "dotted",
+        borderLeftWidth: "1px",
+
+        borderBottom: !connect_bottom ? border_color : "transparent",
+        borderBottomStyle: "dotted",
+        borderBottomWidth: "1px",
+
+        borderRight: !connect_right ? border_color : "transparent",
+        borderRightStyle: "dotted",
+        borderRightWidth: "1px",
+
+        width: `calc(${100 - 2 * cage_border_space}% - 2px)`,
+        height: `calc(${100 - 2 * cage_border_space}% - 2px)`
+    };
+
+    const cage_sum_style = {
+        position: "absolute",
+        left: `calc(${cage_border_space}% - 3px)`,
+        top: `calc(${cage_border_space}% - 3px)`,
+
+        backgroundColor: props.bgCol
+    };
+
+    let cage_sum;
+    if (isCageTotalCell(props.gameState, props.idx)) {
+        cage_sum = `${props.gameState.cages[cage_idx].sum}`;
+    }
+    else {
+        cage_sum = "";
+    }
+
+    return (cage_idx === -1 ? <div className="cage_outline" /> :
+    <div className="cage_outline">
+        <div className="tl_rect" style={tl_style} />
+        <div className="tr_rect" style={tr_style} />
+        <div className="bl_rect" style={bl_style} />
+        <div className="br_rect" style={br_style} />
+        <div className="ct_rect" style={ct_style} />
+        <div className="cage_sum" style={cage_sum_style}>{cage_sum}</div>
+    </div>);
+}
+
 
 function Tile(props) {
     let state = props.gameState.board[props.idx];
@@ -187,6 +350,7 @@ function Tile(props) {
 
     let sel_style = {};
     let cols = [];
+    let bg_col;
     if (props.idx in selected) {
         // TODO iterate & average
         let col_idxs = selected[props.idx];
@@ -198,10 +362,13 @@ function Tile(props) {
         cols.push(hinted_color);
     }
     if (cols.length > 0) {
-        let col = average_color(cols);
+        bg_col = average_color(cols);
         sel_style = {
-            backgroundColor: col
+            backgroundColor: bg_col
         };
+    }
+    else {
+        bg_col = "white";
     }
 
     let color_style = {
@@ -237,14 +404,17 @@ function Tile(props) {
                 setSelected(props.idx);
             }}>
             <div className={`number_cell${empty ? '' : ' nonempty'}${given ? ' given' : (val !== 0 ? ' guess' : '')}`}>
-                {val === 0 ? (pencils !== 0 ? (possibles !== 0 ?
-                                <div><Pencils bits={pencils} color={state.user_color}/><Possibles bits={possibles} color={state.user_color}/></div>
-                                : <Pencils bits={pencils} color={state.user_color}/>)
-                        : (possibles !== 0 ? <Possibles bits={possibles} color={state.user_color}/>
-                                : <div style={{display: 'none'}}/>))
-                : <div style={color_style}>{val}</div>}
+                {val === 0 ?
+                    <div>
+                        <Pencils bits={pencils} color={state.user_color} gameState={props.gameState} idx={props.idx} />
+                        <Possibles bits={possibles} color={state.user_color} />
+                    </div>
+                : <div>
+                    <div style={color_style}>{val}</div>
+                </div>}
             </div>
             <div className="pouting_face" style={revealed ? {} : { display: "none" }}>🥺</div>
+            <CageOutline gameState={props.gameState} idx={props.idx} bgCol={bg_col} />
         </span>);
 }
 

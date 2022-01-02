@@ -322,56 +322,7 @@ export function checkGameOver(gameState) {
     return checkState(gameState) == RIGHT;
 }
 
-// if (typeof module !== 'undefined' && module.exports) {
-//     module.exports = {
-//         initTile: initTile,
-//         initGameState: initGameState,
-//         copyGameState: copyGameState,
-//         wellFormed: wellFormed,
-//         gameStatesEqual: gameStatesEqual,
-//         deleteAllSelected: deleteAllSelected,
-//         dupArrayMap: dupArrayMap,
-//         numSelected: numSelected,
-//         anyNonGivens: anyNonGivens,
-//         setGivens: setGivens,
-//         _idx: _idx,
-//         _idx_to_rc: _idx_to_rc,
-//         gameStateForEachRow: gameStateForEachRow,
-//         gameStateForEachCol: gameStateForEachCol,
-//         gameStateForEachBox: gameStateForEachBox,
-//         gameStateForEachCage: gameStateForEachCage,
-//         NOT_DONE: NOT_DONE,
-//         NOT_RIGHT: NOT_RIGHT,
-//         RIGHT: RIGHT,
-//         checkState: checkState,
-//         checkGameOver: checkGameOver,
-//     };
-// }
-
-// export {
-//     NO_HINT,
-//     HINT_LVL1,
-//     HINT_LVL2,
-//     HINT_LVL3,
-//     initTile,
-//     initGameState,
-//     copyGameState,
-//     wellFormed,
-//     gameStatesEqual,
-//     deleteAllSelected,
-//     dupArrayMap,
-//     numSelected,
-//     anyNonGivens,
-//     setGivens,
-//     _idx,
-//     _idx_to_rc,
-//     gameStateForEachRow,
-//     gameStateForEachCol,
-//     gameStateForEachBox,
-//     gameStateForEachCage,
-//     NOT_DONE,
-//     NOT_RIGHT,
-//     RIGHT,
-//     checkState,
-//     checkGameOver,
-// };
+export function isCageTotalCell(gameState, idx) {
+    const cage_idx = gameState.board[idx].cage_idx;
+    return cage_idx !== -1 && gameState.cages[cage_idx].tiles[0] === idx;
+}

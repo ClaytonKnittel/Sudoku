@@ -70,6 +70,13 @@ function initializeHardGame(gameState) {
     gameState.board.forEach((tile) => {
         if (tile.val) tile.given = true;
     });
+
+    gameState.board[0].cage_idx = 0;
+    gameState.board[1].cage_idx = 0;
+    gameState.cages.push({
+        sum: 11,
+        tiles: [0, 1]
+    });
 }
 
 

@@ -269,12 +269,31 @@ body {
 
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
-    
+
     font-size: 1em;
     /* color: #25757e; */
     vertical-align: top;
 
     overflow: hidden;
+}
+
+.cage_outline {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 100%;
+    height: 100%;
+
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+
+    font-size: 1em;
+    /* color: #237e2c; */
+    vertical-align: top;
+}
+
+.cage_outline .cage_sum {
+    transition: background-color .1s linear;
 }
 
 /* .selected > .possible {
