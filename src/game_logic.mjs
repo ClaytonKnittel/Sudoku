@@ -65,26 +65,76 @@ export function wellFormedCage(cageState) {
             (typeof cageState.tiles == "object") && ('length' in cageState.tiles);
 }
 
-export function gameStatesEqual(s1, s2) {
-    if (!("board" in s1) || !("hinted_tile" in s1) ||
-            !("hint_state" in s1) || !("cages" in s1) ||
-            !("board" in s1) || !("hinted_tile" in s1) ||
-            !("hint_state" in s1) || !("cages" in s2)) {
+export function validGameState(gameState) {
+    if (!("board" in gameState) || !("hinted_tile" in gameState) ||
+            !("hint_state" in gameState) || !("cages" in gameState) ||
+            !("board" in gameState) || !("hinted_tile" in gameState) ||
+            !("hint_state" in gameState) || !("cages" in gameState)) {
         return false;
     }
-	if (s1.board.length !== s2.board.length) {
-		return false;
+
+    if (gameState.board.length !== 81) {
+        return false;
     }
+    if (gameState.hint_state !== NO_HINT &&
+            gameState.hint_state !== HINT_LVL1 &&
+            gameState.hint_state !== HINT_LVL2 &&
+            gameState.hint_state !== HINT_LVL3) {
+        console.log("invalid hint");
+        return false;
+    }
+
+    for (let i = 0; i < gameState.board.length; i++) {
+        let t = gameState.board[i];
+		if (!wellFormed(t)) {
+            console.log("malformed tile", i);
+            return false;
+        }
+        if (t.val < 0 || t.val > 9) {
+            console.log(t.val, "oob");
+            return false;
+        }
+
+        let cage_idx = t.cage_idx;
+        if (cage_idx >= gameState.cages.length) {
+            console.log(cage_idx, "invalid cage idx");
+            return false;
+        }
+        if (cage_idx >= 0 && !(i in gameState.cages[cage_idx].tiles)) {
+            console.log(cage_idx, "invalid cage idx2");
+            return false;
+        }
+    }
+
+    for (let i = 0; i < gameState.cages.length; i++) {
+        let c = gameState.cages[i];
+        if (!wellFormedCage(c)) {
+            return false;
+        }
+
+        let prev_tile_idx = -1;
+        for (let j = 0; j < c.tiles.length; j++) {
+            let tile_idx = c.tiles[j];
+            if (tile_idx < 0 || tile_idx > 80 || gameState.board[tile_idx].cage_idx !== i) {
+                return false;
+            }
+            if (tile_idx <= prev_tile_idx) {
+                return false;
+            }
+            prev_tile_idx = tile_idx;
+        }
+    }
+
+    return true;
+}
+
+export function gameStatesEqual(s1, s2) {
     if (s1.hint_state !== s2.hint_state || s1.hinted_tile !== s2.hinted_tile) {
         return false;
     }
 	for (let i = 0; i < s1.board.length; i++) {
         let t1 = s1.board[i];
         let t2 = s2.board[i];
-
-		if (!wellFormed(t1) || !wellFormed(t2)) {
-			return false;
-        }
 
 		if (t1.val != t2.val || t1.pencils != t2.pencils ||
 				t1.possibles != t2.possibles || t1.given != t2.given ||
@@ -95,10 +145,6 @@ export function gameStatesEqual(s1, s2) {
     for (let i = 0; i < s1.cages.length; i++) {
         let c1 = s1.cages[i];
         let c2 = s2.cages[i];
-
-        if (!wellFormedCage(c1) || !wellFormedCage(c2)) {
-            return false;
-        }
 
         if (c1.sum != c2.sum || c1.tiles.length !== c2.tiles.length) {
             return false;
@@ -297,8 +343,6 @@ export function checkState(gameState) {
         let m = 0;
         let s = 0;
         for (let i = 0; i < cage.tiles.length; i++) {
-            let [r, c] = _idx_to_rc(cage.tiles[i]);
-
             let val = gameBoard[cage.tiles[i]];
             if (val == 0) {
                 return NOT_DONE;

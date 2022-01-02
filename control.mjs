@@ -3,7 +3,7 @@ import crypto from "crypto";
 
 import assert from "console";
 
-import { NO_HINT, HINT_LVL1, HINT_LVL2, HINT_LVL3, initGameState, copyGameState, wellFormed, setGivens, _idx, checkGameOver } from './src/game_logic.mjs';
+import { NO_HINT, HINT_LVL1, HINT_LVL2, HINT_LVL3, initGameState, copyGameState, wellFormed, setGivens, _idx, checkGameOver, validGameState, gameStatesEqual } from './src/game_logic.mjs';
 import { NO_SOLUTIONS, NO_UNIQUE_SOLUTION, solveGame, findHint } from './game_solver.mjs';
 
 let io;
@@ -328,13 +328,15 @@ function updateTile(new_state, idx, user) {
     let s2 = new_state.board[idx];
     
     if ((s1.val != s2.val || s1.pencils != s2.pencils ||
-        s1.possibles != s2.possibles || s1.user_color != s2.user_color)
+        s1.possibles != s2.possibles || s1.cage_idx != s2.cage_idx ||
+        s1.user_color != s2.user_color)
             && !s1.given && (!s1.revealed && !s2.revealed)) {
 
         s1.val = s2.val;
         s1.pencils = s2.pencils;
         s1.possibles = s2.possibles;
         s1.given = s2.given;
+        s1.cage_idx = s2.cage_idx;
         s1.user_color = user.color;
         return true;
     }
@@ -420,34 +422,49 @@ function update_game(socket, data) {
 	if (("old_state" in data) && ("new_state" in data)) {
 		let old_state = data.old_state;
 		let new_state = data.new_state;
-        let changed = false;
 
-		// don't allow changes once the game has finished
-		if (!g_finished && old_state.board.length === 81) {
-            // go through and only accept changes to cells which match
-            // in g_current_state and old_state
-            for (let i = 0; i < 81; i++) {
-                let ot = old_state.board[i];
-                if (!wellFormed(ot)) {
-                    // skip malformed tiles
-                    continue;
-                }
-                let gt = g_current_state.board[i];
+        if (!validGameState(old_state) || !validGameState(new_state)) {
+            // immediately abort if we got invalid game states in the request
+            console.log("invalid game state");
+            return;
+        }
 
-                if (ot.val === gt.val &&
-                        ot.pencils === gt.pencils &&
-                        ot.possibles === gt.possibles &&
-                        ot.given === gt.given &&
-                        ot.user_color === gt.user_color) {
+        if (gameStatesEqual(old_state, g_current_state)) {
+            let changed = false;
 
-                    changed = updateTile(new_state, i, user) || changed;
+            // don't allow changes once the game has finished
+            if (!g_finished) {
+                // go through and only accept changes to cells which match
+                // in g_current_state and old_state
+                for (let i = 0; i < 81; i++) {
+                    let ot = old_state.board[i];
+                    if (!wellFormed(ot)) {
+                        // skip malformed tiles
+                        continue;
+                    }
+                    let gt = g_current_state.board[i];
+
+                    if (ot.val === gt.val &&
+                            ot.pencils === gt.pencils &&
+                            ot.possibles === gt.possibles &&
+                            ot.given === gt.given &&
+                            ot.cage_idx === gt.cage_idx &&
+                            ot.user_color === gt.user_color) {
+
+                        changed = updateTile(new_state, i, user) || changed;
+                    }
                 }
             }
-		}
 
-		if (changed) {
-			gameStateChanged();
-		}
+            if (g_mode === 0) {
+                // accept changes to the cages
+                g_current_state.cages = new_state.cages;
+            }
+
+            if (changed) {
+                gameStateChanged();
+            }
+        }
 	}
 	if ("selected" in data) {
 		let selected = data.selected;

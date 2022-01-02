@@ -836,7 +836,7 @@ function Ctrl(props) {
 }
 
 
-function clearState(gameState, setGameState, setBoth, finished, resetFn) {
+function clearState(gameState, mode, setGameState, setBoth, finished, resetFn) {
     let state;
     if (finished) {
         resetFn();
@@ -855,17 +855,24 @@ function clearState(gameState, setGameState, setBoth, finished, resetFn) {
         for (let i = 0; i < state.board.length; i++) {
             let tileState = state.board[i];
             if (!(tileState.given)) {
-                state.board[i] = initTile();
+                state.board[i].val = 0;
+                state.board[i].user_color = -1;
             }
+            if (mode === 0) {
+                state.board[i].cage_idx = -1;
+            }
+        }
+        if (mode === 0) {
+            state.cages = [];
         }
         setGameState(state);
     }
 }
 
 
-function ClearButton({ gameState, setGameState, state, setBoth, finished, resetFn }) {
+function ClearButton({ gameState, mode, setGameState, state, setBoth, finished, resetFn }) {
     return (<div className="button" onClick={() => {
-        clearState(gameState, setGameState, setBoth, finished, resetFn);
+        clearState(gameState, mode, setGameState, setBoth, finished, resetFn);
     }}>
         {finished ? "reset" : ((anyNonGivens(gameState) || state == 0) ? "clear" : "re-enter")}
     </div>);
@@ -1018,6 +1025,8 @@ function Screen() {
         });
         socketio.on("update", (data) => {
             if ("gameState" in data) {
+                console.log('received');
+                console.log(data.gameState);
                 setGameState(data.gameState);
             }
             if ("state" in data) {
@@ -1083,6 +1092,8 @@ function Screen() {
 
     let changeGameState = (newState) => {
         setGameState(newState);
+        console.log('sending');
+        console.log(newState);
         socketio.emit("update", {
             old_state: gameState,
             new_state: newState,
@@ -1138,8 +1149,8 @@ function Screen() {
                     hidePossibles={hidePossibles} autoErase={autoErase} />
         </div>
         <div className="buttonContainer">
-            <ClearButton gameState={gameState} setGameState={changeGameState} state={state} setBoth={setBoth}
-                        finished={finished} resetFn={resetFn}/>
+            <ClearButton gameState={gameState} mode={mode} setGameState={changeGameState} state={state}
+                        setBoth={setBoth} finished={finished} resetFn={resetFn}/>
             <CheckButton gameState={gameState}/>
             <HintButton gameState={gameState}/>
             <UndoButton />
