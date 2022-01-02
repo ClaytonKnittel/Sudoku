@@ -1,8 +1,7 @@
+import { _idx } from './src/game_logic.mjs';
 
-const { _idx } = require('./src/game_logic');
-
-const NO_SOLUTIONS = 0;
-const NO_UNIQUE_SOLUTION = 1;
+export const NO_SOLUTIONS = 0;
+export const NO_UNIQUE_SOLUTION = 1;
 
 
 function initializeEasyGame(gameState) {
@@ -391,7 +390,7 @@ function findSoln(arr) {
 	return possibleSolns[0];
 }
 
-async function solveGame(gameState) {
+export async function solveGame(gameState) {
     initializeHardGame(gameState);
     let arr = createSolverState(gameState);
     let soln = findSoln(arr);
@@ -708,7 +707,7 @@ const strategy_strings = [
 ];
 
 
-function findHint(gameState) {
+export function findHint(gameState) {
     let arr = createSolverState(gameState);
     eliminate(arr);
     let max_strat = 0;
@@ -740,13 +739,3 @@ function findHint(gameState) {
 
     return -1;
 }
-
-
-exports.NO_SOLUTIONS = NO_SOLUTIONS;
-exports.NO_UNIQUE_SOLUTION = NO_UNIQUE_SOLUTION;
-exports._idx = _idx;
-exports.solveGame = solveGame;
-exports.findHint = findHint;
-
-module.exports = exports;
-

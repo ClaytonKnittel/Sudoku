@@ -1,13 +1,12 @@
-var socketio = require("socket.io"),
-    crypto = require("crypto");
+import { Server } from "socket.io";
+import crypto from "crypto";
 
-const { assert } = require("console");
+import assert from "console";
 
-const { NO_HINT, HINT_LVL1, HINT_LVL2, HINT_LVL3, initGameState, copyGameState, wellFormed, setGivens, _idx, checkGameOver } = require('./src/game_logic');
-const { NO_SOLUTIONS, NO_UNIQUE_SOLUTION, solveGame, findHint } = require('./game_solver');
+import { NO_HINT, HINT_LVL1, HINT_LVL2, HINT_LVL3, initGameState, copyGameState, wellFormed, setGivens, _idx, checkGameOver } from './src/game_logic.mjs';
+import { NO_SOLUTIONS, NO_UNIQUE_SOLUTION, solveGame, findHint } from './game_solver.mjs';
 
-
-var io;
+let io;
 
 let g_current_state = initGameState();
 let g_solution = 0;
@@ -73,9 +72,10 @@ function addToHistory(gameState) {
 }
 
 
-function init(app) {
-    io = socketio.listen(app);
-    io.sockets.on("connection", function(socket) {
+export default function init(app) {
+    io = new Server(app, { /* options */ });
+
+    io.on("connection", function(socket) {
 
         socket.on("disconnect", function() {
             if (!g_socket_id_to_tokens.has(socket.id)) {
@@ -101,7 +101,7 @@ function init(app) {
                         }
                     }
                 }
-                io.sockets.emit("update", {
+                io.emit("update", {
                     selected: g_selected
                 });
 
@@ -174,7 +174,7 @@ function init(app) {
             g_history_idx--;
             g_current_state = copyGameState(g_history[g_history_idx].gameState);
 
-            io.sockets.emit("update", {
+            io.emit("update", {
                 gameState: g_current_state
             });
         });
@@ -198,7 +198,7 @@ function init(app) {
             g_history_idx++;
             g_current_state = copyGameState(g_history[g_history_idx].gameState);
 
-            io.sockets.emit("update", {
+            io.emit("update", {
                 gameState: g_current_state
             });
         });
@@ -227,7 +227,7 @@ function init(app) {
             if (!onRightTrack()) {
                 // if we aren't on the right track, let them know, we aren't able
                 // to give a hint if it's wrong so far
-                io.sockets.emit("solution_discrepancy");
+                io.emit("solution_discrepancy");
                 return;
             }
 
@@ -255,7 +255,7 @@ function init(app) {
             }
 
             if (hint_res === -1) {
-                io.sockets.emit("no_hint", {});
+                io.emit("no_hint", {});
             }
             else {
                 let tile_idx = hint_res.tile_idx;
@@ -278,7 +278,7 @@ function init(app) {
                     g_current_state.board[g_idx].revealed = true;
                     gameStateChanged();
                 }
-                io.sockets.emit("update", {
+                io.emit("update", {
                     gameState: g_current_state,
                     endtime: g_endtime,
                     finished: g_finished
@@ -308,7 +308,7 @@ function init(app) {
                 g_history_idx = 0;
                 g_history = [];
 
-                io.sockets.emit("update", {
+                io.emit("update", {
                     gameState: g_current_state,
                     state: g_mode,
                     selected: g_selected,
@@ -399,10 +399,10 @@ function update_game(socket, data) {
 
 			solveGame(g_current_state).then((res) => {
 				if (res === NO_SOLUTIONS) {
-					io.sockets.emit("no_solutions", {});
+					io.emit("no_solutions", {});
 				}
 				else if (res === NO_UNIQUE_SOLUTION) {
-					io.sockets.emit("multiple_solutions", {});
+					io.emit("multiple_solutions", {});
 				}
 				else {
 					g_solution = res;
@@ -452,7 +452,7 @@ function update_game(socket, data) {
 	if ("selected" in data) {
 		let selected = data.selected;
 		let user_color = user.color;
-		for (idx in selected) {
+		for (let idx in selected) {
 			let user_colors = selected[idx];
 			if (user_colors.includes(user_color)) {
 				if (!(idx in g_selected)) {
@@ -467,7 +467,7 @@ function update_game(socket, data) {
 			}
 		};
 
-		for (idx in g_selected) {
+		for (let idx in g_selected) {
 			let user_colors = g_selected[idx];
 			if (user_colors.includes(user_color)) {
 				if (!(idx in selected) || !(selected[idx].includes(user_color))) {
@@ -483,7 +483,7 @@ function update_game(socket, data) {
 		}
 	}
 
-	io.sockets.emit("update", {
+	io.emit("update", {
 		gameState: g_current_state,
 		state: g_mode,
 		selected: g_selected,
@@ -549,17 +549,13 @@ function verify_cells(socket, data) {
     }
 
     if (changed) {
-        io.sockets.emit("update", {
+        io.emit("update", {
             gameState: g_current_state
         });
     }
     else {
         // letting the users know that everything is right so far
-        io.sockets.emit("on_right_track", {});
+        io.emit("on_right_track", {});
     }
 }
 
-
-exports.init = init;
-
-module.exports = exports;

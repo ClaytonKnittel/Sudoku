@@ -2,23 +2,28 @@
   "name": "sudoku",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "public/index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --mode production -c webpack.config.js && cp ./src/index.html ./public/index.html && cp ./src/style.css ./public/style.css",
-    "start": "node server.js"
+    "start": "node server.mjs"
   },
   "author": "",
   "license": "ISC",
+  "engines": {
+    "npm": ">=7.21.0",
+    "node": ">=16.8.0"
+  },
   "dependencies": {
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
     "crypto": "^1.0.1",
     "fs": "0.0.1-security",
     "http": "0.0.1-security",
     "mime": "^2.4.6",
     "path": "^0.12.7",
-    "socketio": "^1.0.0",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "socket.io-client": "^4.4.0",
+    "socket.io": "^4.4.0",
     "url": "^0.11.0"
   },
   "devDependencies": {

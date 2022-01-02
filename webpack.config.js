@@ -1,11 +1,10 @@
 const path = require('path');
-const webpack = require('webpack');
 
 module.exports = {
     entry: {
       "main.js": [
         path.resolve(__dirname, './src/main.jsx'),
-        path.resolve(__dirname, './src/game_logic.js')
+        path.resolve(__dirname, './src/game_logic.mjs'),
       ]
     },
     output: {
@@ -18,14 +17,6 @@ module.exports = {
           test: /\.jsx?$/,
           exclude: /node_modules/,
           use: ['babel-loader']
-          // use: {
-          //   loader: "babel-loader",
-          //   options: {
-          //     cacheDirectory: true,
-          //     cacheCompression: false,
-          //     envName: "production"
-          //   }
-          // }
         }
       ]
     },

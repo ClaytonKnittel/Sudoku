@@ -1,11 +1,11 @@
 
-const NO_HINT = 0;
-const HINT_LVL1 = 1;
-const HINT_LVL2 = 2;
-const HINT_LVL3 = 3;
+export const NO_HINT = 0;
+export const HINT_LVL1 = 1;
+export const HINT_LVL2 = 2;
+export const HINT_LVL3 = 3;
 
 
-function initTile() {
+export function initTile() {
     return {
         val: 0,
         pencils: 0,
@@ -17,7 +17,7 @@ function initTile() {
     }
 }
 
-function initGameState() {
+export function initGameState() {
     let arr = [];
     for (let i = 0; i < 81; i++) {
         arr.push(initTile());
@@ -39,7 +39,7 @@ function initGameState() {
     }
 }
 
-function copyGameState(oldState) {
+export function copyGameState(oldState) {
     let newBoard = [];
     oldState.board.forEach((tileState) => {
         newBoard.push({...tileState});
@@ -53,19 +53,19 @@ function copyGameState(oldState) {
 }
 
 
-function wellFormed(tileState) {
+export function wellFormed(tileState) {
 	return ('val' in tileState) && ('pencils' in tileState) &&
 		   ('possibles' in tileState) && ('given' in tileState) &&
 		   ('revealed' in tileState) && ('cage_idx' in tileState) &&
            ('user_color' in tileState);
 }
 
-function wellFormedCage(cageState) {
+export function wellFormedCage(cageState) {
     return ('sum' in cageState) && ('tiles' in cageState) &&
             (typeof cageState.tiles == "object") && ('length' in cageState.tiles);
 }
 
-function gameStatesEqual(s1, s2) {
+export function gameStatesEqual(s1, s2) {
     if (!("board" in s1) || !("hinted_tile" in s1) ||
             !("hint_state" in s1) || !("cages" in s1) ||
             !("board" in s1) || !("hinted_tile" in s1) ||
@@ -114,7 +114,7 @@ function gameStatesEqual(s1, s2) {
 }
 
 
-function deleteAllSelected(selected, user_color) {
+export function deleteAllSelected(selected, user_color) {
     for (const idx in selected) {
         let user_colors = selected[idx];
         let new_lis = user_colors.filter((color) => color !== user_color);
@@ -128,7 +128,7 @@ function deleteAllSelected(selected, user_color) {
 }
 
 
-function dupArrayMap(am) {
+export function dupArrayMap(am) {
     let dup = {};
     for (const [key, val] of Object.entries(am)) {
         dup[key] = [...val];
@@ -139,7 +139,7 @@ function dupArrayMap(am) {
 /*
  * returns the number of tiles this user has selected
  */
-function numSelected(selected, user_color) {
+export function numSelected(selected, user_color) {
     let cnt = 0;
     for (const [_, val] of Object.entries(selected)) {
         val.forEach((col) => {
@@ -150,7 +150,7 @@ function numSelected(selected, user_color) {
 }
 
 
-function anyNonGivens(state) {
+export function anyNonGivens(state) {
     let changes = false;
     for (let i = 0; i < state.board.length; i++) {
         let tileState = state.board[i];
@@ -162,7 +162,7 @@ function anyNonGivens(state) {
 }
 
 
-function setGivens(gameState) {
+export function setGivens(gameState) {
     let gsc = copyGameState(gameState);
     // go through setGivenList and make all tiles givens
     gsc.board.forEach((tileState) => {
@@ -176,13 +176,13 @@ function setGivens(gameState) {
 
 
 
-function _idx(r, c) {
+export function _idx(r, c) {
     let b = Math.floor(r / 3) * 3 + Math.floor(c / 3);
     let i = (r % 3) * 3 + (c % 3);
     return b * 9 + i;
 }
 
-function _idx_to_rc(idx) {
+export function _idx_to_rc(idx) {
     let b = Math.floor(idx / 9);
     let i = idx % 9;
     let r = Math.floor(b / 3) * 3 + Math.floor(i / 3);
@@ -195,7 +195,7 @@ function _idx_to_rc(idx) {
  * calls given callback on each tile in given row, with arguments
  * (tile, row, col)
  */
-function gameStateForEachRow(gameState, row_idx, callback) {
+export function gameStateForEachRow(gameState, row_idx, callback) {
     for (let c = 0; c < 9; c++) {
         let idx = _idx(row_idx, c);
         callback(gameState[idx], row_idx, c);
@@ -206,7 +206,7 @@ function gameStateForEachRow(gameState, row_idx, callback) {
  * calls given callback on each tile in given column, with arguments
  * (tile, row, col)
  */
-function gameStateForEachCol(gameState, col_idx, callback) {
+export function gameStateForEachCol(gameState, col_idx, callback) {
     for (let r = 0; r < 9; r++) {
         let idx = _idx(r, col_idx);
         callback(gameState[idx], r, col_idx);
@@ -217,7 +217,7 @@ function gameStateForEachCol(gameState, col_idx, callback) {
  * calls given callback on each tile in given box, with arguments
  * (tile, row, col)
  */
-function gameStateForEachBox(gameState, box_idx, callback) {
+export function gameStateForEachBox(gameState, box_idx, callback) {
     for (let i = 0; i < 9; i++) {
         let idx = 9 * box_idx + i;
         let [r, c] = _idx_to_rc(idx)
@@ -229,7 +229,7 @@ function gameStateForEachBox(gameState, box_idx, callback) {
  * calls given callback on each tile in given cage, with arguments
  * (tile, row, col)
  */
-function gameStateForEachCage(gameState, cage_idx, callback) {
+export function gameStateForEachCage(gameState, cage_idx, callback) {
     cage = gameState.cages[cage_idx];
     for (let i = 0; i < cage.tiles.length; i++) {
         let idx = cage.tiles[i];
@@ -239,12 +239,12 @@ function gameStateForEachCage(gameState, cage_idx, callback) {
 }
 
 
-const NOT_DONE = 1;
-const NOT_RIGHT = 2;
-const RIGHT = 3;
+export const NOT_DONE = 1;
+export const NOT_RIGHT = 2;
+export const RIGHT = 3;
 
 
-function checkState(gameState) {
+export function checkState(gameState) {
     let gameBoard = gameState.board;
     // check rows
     for (let r = 0; r < 9; r++) {
@@ -318,34 +318,60 @@ function checkState(gameState) {
 }
 
 // check if we have game over
-function checkGameOver(gameState) {
+export function checkGameOver(gameState) {
     return checkState(gameState) == RIGHT;
 }
 
-module.exports = {
-    NO_HINT: NO_HINT,
-    HINT_LVL1: HINT_LVL1,
-    HINT_LVL2: HINT_LVL2,
-    HINT_LVL3: HINT_LVL3,
-    initTile: initTile,
-    initGameState: initGameState,
-    copyGameState: copyGameState,
-    wellFormed: wellFormed,
-    gameStatesEqual: gameStatesEqual,
-    deleteAllSelected: deleteAllSelected,
-    dupArrayMap: dupArrayMap,
-    numSelected: numSelected,
-    anyNonGivens: anyNonGivens,
-    setGivens: setGivens,
-    _idx: _idx,
-    _idx_to_rc: _idx_to_rc,
-    gameStateForEachRow: gameStateForEachRow,
-    gameStateForEachCol: gameStateForEachCol,
-    gameStateForEachBox: gameStateForEachBox,
-    gameStateForEachCage: gameStateForEachCage,
-    NOT_DONE: NOT_DONE,
-    NOT_RIGHT: NOT_RIGHT,
-    RIGHT: RIGHT,
-    checkState: checkState,
-    checkGameOver: checkGameOver,
-};
+// if (typeof module !== 'undefined' && module.exports) {
+//     module.exports = {
+//         initTile: initTile,
+//         initGameState: initGameState,
+//         copyGameState: copyGameState,
+//         wellFormed: wellFormed,
+//         gameStatesEqual: gameStatesEqual,
+//         deleteAllSelected: deleteAllSelected,
+//         dupArrayMap: dupArrayMap,
+//         numSelected: numSelected,
+//         anyNonGivens: anyNonGivens,
+//         setGivens: setGivens,
+//         _idx: _idx,
+//         _idx_to_rc: _idx_to_rc,
+//         gameStateForEachRow: gameStateForEachRow,
+//         gameStateForEachCol: gameStateForEachCol,
+//         gameStateForEachBox: gameStateForEachBox,
+//         gameStateForEachCage: gameStateForEachCage,
+//         NOT_DONE: NOT_DONE,
+//         NOT_RIGHT: NOT_RIGHT,
+//         RIGHT: RIGHT,
+//         checkState: checkState,
+//         checkGameOver: checkGameOver,
+//     };
+// }
+
+// export {
+//     NO_HINT,
+//     HINT_LVL1,
+//     HINT_LVL2,
+//     HINT_LVL3,
+//     initTile,
+//     initGameState,
+//     copyGameState,
+//     wellFormed,
+//     gameStatesEqual,
+//     deleteAllSelected,
+//     dupArrayMap,
+//     numSelected,
+//     anyNonGivens,
+//     setGivens,
+//     _idx,
+//     _idx_to_rc,
+//     gameStateForEachRow,
+//     gameStateForEachCol,
+//     gameStateForEachBox,
+//     gameStateForEachCage,
+//     NOT_DONE,
+//     NOT_RIGHT,
+//     RIGHT,
+//     checkState,
+//     checkGameOver,
+// };

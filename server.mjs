@@ -1,14 +1,22 @@
-var http = require("http"),
-    url = require("url"),
-    path = require("path"),
-    mime = require("mime"),
-	fs = require("fs");
+// var http = require("http"),
+//     url = require("url"),
+//     path = require("path"),
+//     mime = require("mime"),
+// 	fs = require("fs");
 
-let { init } = require('./control');
+import http from "http";
+import url from "url";
+import path from "path";
+import mime from "mime";
+import fs from "fs";
+
+import init from './control.mjs';
+
+const __dirname = path.resolve();
 
 let port = 80;
 
-var app = http.createServer(function(req, resp){
+var app = http.createServer(function(req, resp) {
 	// This callback runs when a new connection is made to our HTTP server.
     var reqFile = url.parse(req.url).pathname;
     if (reqFile === "/") {
