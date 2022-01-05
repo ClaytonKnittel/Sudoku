@@ -74,6 +74,52 @@ export function wellFormedCage(cageState) {
             (typeof cageState.tiles == "object") && ('length' in cageState.tiles);
 }
 
+export function tilesAreConnected(tile_list) {
+    let tiles = new Set();
+    tile_list.forEach((tile) => tiles.add(tile));
+
+    let tile_queue = [];
+    tile_queue.push(tile_list[0]);
+    tiles.delete(tile_list[0]);
+    let front = 0;
+
+    while (front < tile_queue.length) {
+        tiles.delete(tile_queue[front]);
+        let [r, c] = _idx_to_rc(tile_queue[front]);
+        front++;
+
+        if (r > 0) {
+            let up = _idx(r - 1, c);
+            if (tiles.has(up)) {
+                tiles.delete(up);
+                tile_queue.push(up);
+            }
+        }
+        if (r < 8) {
+            let down = _idx(r + 1, c);
+            if (tiles.has(down)) {
+                tiles.delete(down);
+                tile_queue.push(down);
+            }
+        }
+        if (c > 0) {
+            let left = _idx(r, c - 1);
+            if (tiles.has(left)) {
+                tiles.delete(left);
+                tile_queue.push(left);
+            }
+        }
+        if (c < 8) {
+            let right = _idx(r, c + 1);
+            if (tiles.has(right)) {
+                tiles.delete(right);
+                tile_queue.push(right);
+            }
+        }
+    }
+    return tiles.size === 0;
+}
+
 export function validGameState(gameState) {
     if (!("board" in gameState) || !("hinted_tile" in gameState) ||
             !("hint_state" in gameState) || !("cages" in gameState) ||
@@ -131,6 +177,10 @@ export function validGameState(gameState) {
                 return false;
             }
             prev_tile_idx = tile_idx;
+        }
+
+        if (!tilesAreConnected(c.tiles)) {
+            return false;
         }
     }
 
