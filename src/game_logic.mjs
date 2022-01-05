@@ -41,13 +41,22 @@ export function initGameState() {
 
 export function copyGameState(oldState) {
     let newBoard = [];
+    let newCages = [];
     oldState.board.forEach((tileState) => {
         newBoard.push({...tileState});
     });
+    oldState.cages.forEach((cage) => {
+        newCages.push({
+            sum: cage.sum,
+            tiles: [...cage.tiles]
+        });
+    });
     let newState = {...oldState};
     delete newState.board;
+    delete newState.cages;
     return {
         board: newBoard,
+        cages: newCages,
         ...newState
     };
 }
@@ -369,4 +378,37 @@ export function checkGameOver(gameState) {
 export function isCageTotalCell(gameState, idx) {
     const cage_idx = gameState.board[idx].cage_idx;
     return cage_idx !== -1 && gameState.cages[cage_idx].tiles[0] === idx;
+}
+
+// reorders cage_idxs, removing cages which are no longer present on the board anywhere
+export function organizeCages(gameState) {
+    let cage_idx_map = new Map();
+    let new_cage_list = [];
+    let n_cages = 0;
+
+    for (let i = 0; i < 81; i++) {
+        let c_idx = gameState.board[i].cage_idx;
+        if (c_idx === -1) {
+            continue;
+        }
+
+        let new_cage;
+        if (!cage_idx_map.has(c_idx)) {
+            cage_idx_map.set(c_idx, n_cages);
+            new_cage = n_cages;
+            n_cages++;
+
+            new_cage_list.push({
+                sum: gameState.cages[c_idx].sum,
+                tiles: [i]
+            });
+        }
+        else {
+            new_cage = cage_idx_map.get(c_idx);
+            new_cage_list[new_cage].tiles.push(i);
+        }
+        gameState.board[i].cage_idx = new_cage;
+    }
+
+    gameState.cages = new_cage_list;
 }

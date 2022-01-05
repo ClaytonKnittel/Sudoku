@@ -3,7 +3,7 @@ import crypto from "crypto";
 
 import assert from "console";
 
-import { NO_HINT, HINT_LVL1, HINT_LVL2, HINT_LVL3, initGameState, copyGameState, wellFormed, setGivens, _idx, checkGameOver, validGameState, gameStatesEqual } from './src/game_logic.mjs';
+import { NO_HINT, HINT_LVL1, HINT_LVL2, HINT_LVL3, initGameState, copyGameState, wellFormed, setGivens, _idx, checkGameOver, validGameState, gameStatesEqual, organizeCages } from './src/game_logic.mjs';
 import { NO_SOLUTIONS, NO_UNIQUE_SOLUTION, solveGame, findHint } from './game_solver.mjs';
 
 let io;
@@ -323,20 +323,18 @@ export default function init(app) {
 }
 
 
-function updateTile(new_state, idx, user) {
-    let s1 = g_current_state.board[idx];
+function updateTile(trans_state, new_state, idx, user) {
+    let s1 = trans_state.board[idx];
     let s2 = new_state.board[idx];
     
     if ((s1.val != s2.val || s1.pencils != s2.pencils ||
-        s1.possibles != s2.possibles || s1.cage_idx != s2.cage_idx ||
-        s1.user_color != s2.user_color)
+        s1.possibles != s2.possibles || s1.user_color != s2.user_color)
             && !s1.given && (!s1.revealed && !s2.revealed)) {
 
         s1.val = s2.val;
         s1.pencils = s2.pencils;
         s1.possibles = s2.possibles;
         s1.given = s2.given;
-        s1.cage_idx = s2.cage_idx;
         s1.user_color = user.color;
         return true;
     }
@@ -429,41 +427,72 @@ function update_game(socket, data) {
             return;
         }
 
-        if (gameStatesEqual(old_state, g_current_state)) {
-            let changed = false;
+        let trans_state = copyGameState(g_current_state);
 
-            // don't allow changes once the game has finished
-            if (!g_finished) {
-                // go through and only accept changes to cells which match
-                // in g_current_state and old_state
-                for (let i = 0; i < 81; i++) {
-                    let ot = old_state.board[i];
-                    if (!wellFormed(ot)) {
-                        // skip malformed tiles
-                        continue;
-                    }
-                    let gt = g_current_state.board[i];
+        let changed = false;
+        // don't allow changes once the game has finished
+        if (!g_finished) {
+            // go through and only accept changes to cells which match
+            // in trans_state and old_state
+            for (let i = 0; i < 81; i++) {
+                let ot = old_state.board[i];
+                let gt = trans_state.board[i];
 
-                    if (ot.val === gt.val &&
-                            ot.pencils === gt.pencils &&
-                            ot.possibles === gt.possibles &&
-                            ot.given === gt.given &&
-                            ot.cage_idx === gt.cage_idx &&
-                            ot.user_color === gt.user_color) {
+                if (ot.val === gt.val &&
+                        ot.pencils === gt.pencils &&
+                        ot.possibles === gt.possibles &&
+                        ot.given === gt.given &&
+                        ot.cage_idx === gt.cage_idx &&
+                        ot.user_color === gt.user_color) {
 
-                        changed = updateTile(new_state, i, user) || changed;
+                    changed = updateTile(trans_state, new_state, i, user) || changed;
+                }
+            }
+        }
+
+        if (g_mode === 0) {
+            let new_cages = new Map();
+            for (let i = 0; i < 81; i++) {
+                let ot = old_state.board[i];
+                let gt = trans_state.board[i];
+
+                if (ot.val === gt.val &&
+                        ot.pencils === gt.pencils &&
+                        ot.possibles === gt.possibles &&
+                        ot.given === gt.given &&
+                        ot.cage_idx === gt.cage_idx &&
+                        ot.user_color === gt.user_color) {
+
+                    let new_cage_idx = new_state.board[i].cage_idx;
+                    if (new_cage_idx !== ot.cage_idx) {
+                        if (!new_cages.has(new_cage_idx)) {
+                            new_cages.put(new_cage_idx, {
+                                sum: new_state.cages[new_cage_idx].sum,
+                                tiles: [i]
+                            });
+                        }
+                        else {
+                            new_cages.get(new_cage_idx).tiles.push(i);
+                        }
+                        changed = true;
                     }
                 }
             }
 
-            if (g_mode === 0) {
-                // accept changes to the cages
-                g_current_state.cages = new_state.cages;
-            }
+            let n_cages = trans_state.cages.length;
+            new_cages.forEach((cage) => {
+                cage.tiles.forEach((tile_idx) => {
+                    trans_state.tiles[tile_idx].cage_idx = n_cages;
+                });
+                trans_state.cages.push(cage);
+                n_cages++;
+            });
+            organizeCages(trans_state);
+        }
 
-            if (changed) {
-                gameStateChanged();
-            }
+        if (changed && validGameState(trans_state)) {
+            g_current_state = trans_state;
+            gameStateChanged();
         }
 	}
 	if ("selected" in data) {
