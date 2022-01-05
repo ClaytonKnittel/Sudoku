@@ -469,7 +469,7 @@ function update_game(socket, data) {
                             trans_state.board[i].cage_idx = -1;
                         }
                         else if (!new_cages.has(new_cage_idx)) {
-                            new_cages.put(new_cage_idx, {
+                            new_cages.set(new_cage_idx, {
                                 sum: new_state.cages[new_cage_idx].sum,
                                 tiles: [i]
                             });
@@ -485,7 +485,7 @@ function update_game(socket, data) {
             let n_cages = trans_state.cages.length;
             new_cages.forEach((cage) => {
                 cage.tiles.forEach((tile_idx) => {
-                    trans_state.tiles[tile_idx].cage_idx = n_cages;
+                    trans_state.board[tile_idx].cage_idx = n_cages;
                 });
                 trans_state.cages.push(cage);
                 n_cages++;

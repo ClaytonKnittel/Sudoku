@@ -109,8 +109,8 @@ export function validGameState(gameState) {
             console.log(cage_idx, "invalid cage idx");
             return false;
         }
-        if (cage_idx >= 0 && !(i in gameState.cages[cage_idx].tiles)) {
-            console.log(cage_idx, "invalid cage idx2");
+        if (cage_idx >= 0 && !gameState.cages[cage_idx].tiles.includes(i)) {
+            console.log(cage_idx, `invalid cage idx2 ${i} (${cage_idx})`, gameState.cages[cage_idx].tiles);
             return false;
         }
     }

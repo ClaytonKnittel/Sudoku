@@ -7,7 +7,6 @@ import { NO_HINT,
          HINT_LVL1,
          HINT_LVL2,
          HINT_LVL3,
-         initTile,
          initGameState,
          copyGameState,
          deleteAllSelected,
@@ -24,7 +23,9 @@ import { NO_HINT,
          NOT_DONE,
          NOT_RIGHT,
          checkState, 
-         isCageTotalCell} from "./game_logic.mjs";
+         isCageTotalCell,
+         organizeCages,
+         validGameState} from "./game_logic.mjs";
 
 var socketio = io().connect();
 
@@ -601,6 +602,28 @@ function Sudoku(props) {
         }
 
         if (finished) {
+            return;
+        }
+
+        if ((e.key === "c" || e.key === "C") && props.state === 0) {
+            let user_sum = window.prompt("Enter the sum for this cage:");
+            let new_cage_idx = newState.cages.length;
+            newState.cages.push({
+                sum: user_sum,
+                tiles: []
+            });
+
+            for (const idx in selected) {
+                let user_colors = selected[idx];
+                if (user_colors.includes(props.user_color)) {
+                    console.log("caging", idx);
+                    newState.board[idx].cage_idx = new_cage_idx;
+                    newState.cages[new_cage_idx].tiles.push(idx);
+                }
+            }
+            organizeCages(newState);
+            validGameState(newState);
+            setGameState(newState);
             return;
         }
 
