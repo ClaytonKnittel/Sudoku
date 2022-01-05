@@ -433,10 +433,10 @@ function update_game(socket, data) {
         // don't allow changes once the game has finished
         if (!g_finished) {
             // go through and only accept changes to cells which match
-            // in trans_state and old_state
+            // in g_current_state and old_state
             for (let i = 0; i < 81; i++) {
                 let ot = old_state.board[i];
-                let gt = trans_state.board[i];
+                let gt = g_current_state.board[i];
 
                 if (ot.val === gt.val &&
                         ot.pencils === gt.pencils &&
@@ -454,7 +454,7 @@ function update_game(socket, data) {
             let new_cages = new Map();
             for (let i = 0; i < 81; i++) {
                 let ot = old_state.board[i];
-                let gt = trans_state.board[i];
+                let gt = g_current_state.board[i];
 
                 if (ot.val === gt.val &&
                         ot.pencils === gt.pencils &&
@@ -465,7 +465,10 @@ function update_game(socket, data) {
 
                     let new_cage_idx = new_state.board[i].cage_idx;
                     if (new_cage_idx !== ot.cage_idx) {
-                        if (!new_cages.has(new_cage_idx)) {
+                        if (new_cage_idx === -1) {
+                            trans_state.board[i].cage_idx = -1;
+                        }
+                        else if (!new_cages.has(new_cage_idx)) {
                             new_cages.put(new_cage_idx, {
                                 sum: new_state.cages[new_cage_idx].sum,
                                 tiles: [i]
