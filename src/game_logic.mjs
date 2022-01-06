@@ -145,7 +145,7 @@ export function validGameState(gameState) {
             console.log("malformed tile", i);
             return false;
         }
-        if (t.val < 0 || t.val > 9) {
+        if (t.val < -9 || t.val > 9) {
             console.log(t.val, "oob");
             return false;
         }
@@ -356,7 +356,7 @@ export function checkState(gameState) {
         let m = 0;
         for (let c = 0; c < 9; c++) {
             let val = gameBoard[_idx(r, c)].val;
-            if (val == 0) {
+            if (val <= 0) {
                 return NOT_DONE;
             }
             m |= (1 << (val - 1));
@@ -370,7 +370,7 @@ export function checkState(gameState) {
         let m = 0;
         for (let r = 0; r < 9; r++) {
             let val = gameBoard[_idx(r, c)].val;
-            if (val == 0) {
+            if (val <= 0) {
                 return NOT_DONE;
             }
             m |= (1 << (val - 1));
@@ -387,7 +387,7 @@ export function checkState(gameState) {
             let c = (b % 3) * 3 + (i % 3);
 
             let val = gameBoard[_idx(r, c)].val;
-            if (val == 0) {
+            if (val <= 0) {
                 return NOT_DONE;
             }
             m |= (1 << (val - 1));
@@ -403,7 +403,7 @@ export function checkState(gameState) {
         let s = 0;
         for (let i = 0; i < cage.tiles.length; i++) {
             let val = gameBoard[cage.tiles[i]];
-            if (val == 0) {
+            if (val <= 0) {
                 return NOT_DONE;
             }
             if ((m & (1 << (val - 1))) != 0) {
