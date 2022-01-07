@@ -1,4 +1,4 @@
-import { gameStateForEachCage, _idx } from './src/game_logic.mjs';
+import { _idx, _idx_to_rc } from './src/game_logic.mjs';
 
 export const NO_SOLUTIONS = 0;
 export const NO_UNIQUE_SOLUTION = 1;
@@ -277,12 +277,12 @@ function initializeKillerGame(gameState) {
         tiles: [57, 58, 59]
     });
 
+    gameState.board[66].cage_idx = 27;
     gameState.board[67].cage_idx = 27;
     gameState.board[68].cage_idx = 27;
-    gameState.board[69].cage_idx = 27;
     gameState.cages.push({
         sum: 9,
-        tiles: [67, 68, 69]
+        tiles: [66, 67, 68]
     });
 
     gameState.board[75].cage_idx = 28;
@@ -382,6 +382,25 @@ function pSetToString(pset) {
 }
 
 
+function forEachBoxSum(sum, n_digits, exclude_mask, callback, digit_list=[]) {
+    if (n_digits === 0) {
+        if (sum === 0) {
+            callback(digit_list);
+        }
+        return;
+    }
+    if (sum < 0) {
+        return;
+    }
+
+    pSetForEach(~exclude_mask, (lowest_val) => {
+        // exclude this val and all vals lower than it
+        let new_mask = exclude_mask | ((1 << lowest_val) - 1);
+        forEachBoxSum(sum - lowest_val, n_digits - 1, new_mask, callback, [...digit_list, lowest_val]);
+    });
+}
+
+
 function createSolverState(gameState) {
     let arr = [];
 	for (let r = 0; r < 9; r++) {
@@ -397,9 +416,25 @@ function createSolverState(gameState) {
             });
 		}
 	}
+
+    const cages = gameState.cages;
+    let new_cages = [];
+    for (let i = 0; i < cages.length; i++) {
+        let new_tiles = [];
+        for (let j = 0; j < cages[i].tiles.length; j++) {
+            let [r, c] = _idx_to_rc(cages[i].tiles[j]);
+            new_tiles.push(r * 9 + c);
+        }
+
+        new_cages.push({
+            sum: cages[i].sum,
+            tiles: new_tiles
+        });
+    }
+
     return {
         arr: arr,
-        cages: gameState.cages
+        cages: new_cages
     };
 }
 
@@ -466,6 +501,44 @@ function eliminate(state) {
             }
 		}
 	}
+
+    for (let c = 0; c < cages.length; c++) {
+        let cage = cages[c];
+
+        let exclude_mask = 0;
+        let sum = cage.sum;
+        let n_free_tiles = 0;
+        for (let i = 0; i < cage.tiles.length; i++) {
+            let tile = arr[cage.tiles[i]];
+            if (tileIsResolved(tile)) {
+                exclude_mask = pSetAdd(exclude_mask, tile.val);
+                sum -= tile.val;
+            }
+            else {
+                n_free_tiles++;
+            }
+        }
+
+        let possible = 0;
+        forEachBoxSum(sum, n_free_tiles, exclude_mask, (digits) => {
+            let mask = 0;
+            digits.forEach((digit) => {
+                mask = pSetAdd(mask, digit);
+            });
+
+            possible |= mask;
+        });
+
+        for (let i = 0; i < cage.tiles.length; i++) {
+            let tile_idx = cage.tiles[i];
+            let tile = arr[tile_idx];
+
+            if (!tileIsResolved(tile)) {
+                tile.val &= PSET_BIT | possible;
+            }
+        }
+    }
+
 	return changed;
 }
 
@@ -612,8 +685,12 @@ function findBestGuessTile(arr) {
 
 
 function stateDeepCopy(state) {
+    let newBoard = [];
+    state.arr.forEach((tile) => {
+        newBoard.push({...tile});
+    });
 	return {
-        arr: [...state.arr],
+        arr: newBoard,
         // no need to copy cages because they are const
         cages: state.cages
     };
@@ -653,11 +730,10 @@ function printGame({arr, cages}) {
 	console.log();
 }
 
-function findSoln(state) {
+function findSoln(state, depth) {
     let arr = state.arr;
 
 	while ((eliminate(state) || resolveGame(arr)) && !anyContradictions(state));
-    printGame(state);
 
 	if (anyContradictions(state)) {
 		return NO_SOLUTIONS;
@@ -673,7 +749,7 @@ function findSoln(state) {
 		if (!no_unique && possibleSolns.length <= 1) {
 			let state_copy = stateDeepCopy(state);
 			state_copy.arr[idx].val = poss;
-			let sln = findSoln(state_copy);
+			let sln = findSoln(state_copy, depth + 1);
 			if (sln === NO_SOLUTIONS) {
 			}
 			else if (sln === NO_UNIQUE_SOLUTION) {
@@ -698,7 +774,7 @@ function findSoln(state) {
 export async function solveGame(gameState) {
     initializeKillerGame(gameState);
     let state = createSolverState(gameState);
-    let soln = findSoln(state);
+    let soln = findSoln(state, 0);
     return soln;
 }
 
@@ -1013,6 +1089,10 @@ const strategy_strings = [
 
 
 export function findHint(gameState) {
+    if (gameState.cages.length !== 0) {
+        return -1;
+    }
+
     let arr = createSolverState(gameState);
     eliminate(arr);
     let max_strat = 0;
