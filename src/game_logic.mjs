@@ -303,7 +303,7 @@ export function _idx_to_rc(idx) {
 export function gameStateForEachRow(gameState, row_idx, callback) {
     for (let c = 0; c < 9; c++) {
         let idx = _idx(row_idx, c);
-        callback(gameState[idx], row_idx, c);
+        callback(gameState.board[idx], row_idx, c);
     }
 }
 
@@ -314,7 +314,7 @@ export function gameStateForEachRow(gameState, row_idx, callback) {
 export function gameStateForEachCol(gameState, col_idx, callback) {
     for (let r = 0; r < 9; r++) {
         let idx = _idx(r, col_idx);
-        callback(gameState[idx], r, col_idx);
+        callback(gameState.board[idx], r, col_idx);
     }
 }
 
@@ -326,7 +326,7 @@ export function gameStateForEachBox(gameState, box_idx, callback) {
     for (let i = 0; i < 9; i++) {
         let idx = 9 * box_idx + i;
         let [r, c] = _idx_to_rc(idx)
-        callback(gameState[idx], r, c);
+        callback(gameState.board[idx], r, c);
     }
 }
 
@@ -335,11 +335,11 @@ export function gameStateForEachBox(gameState, box_idx, callback) {
  * (tile, row, col)
  */
 export function gameStateForEachCage(gameState, cage_idx, callback) {
-    cage = gameState.cages[cage_idx];
+    let cage = gameState.cages[cage_idx];
     for (let i = 0; i < cage.tiles.length; i++) {
         let idx = cage.tiles[i];
         let [r, c] = _idx_to_rc(idx)
-        callback(gameState[idx], r, c);
+        callback(gameState.board[idx], r, c);
     }
 }
 

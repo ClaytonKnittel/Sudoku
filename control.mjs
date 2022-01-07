@@ -43,8 +43,6 @@ function addUserObj(socket_id) {
 
 function expandHistory() {
     if (g_history_idx !== g_history.length - 1) {
-        assert(g_history_idx < g_history.length);
-
         for (let i = g_history.length - 2; i >= g_history_idx; i--) {
             // no need to deep copy
             let itm = {

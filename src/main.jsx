@@ -445,7 +445,7 @@ function Box(props) {
 
 
 function doAutoErase(gameState, idx) {
-    let typed_val = gameState[idx].val;
+    let typed_val = gameState.board[idx].val;
     let [r, c] = _idx_to_rc(idx);
     gameStateForEachRow(gameState, r, (tile) => {
         if (tile.val === 0) {
@@ -465,6 +465,14 @@ function doAutoErase(gameState, idx) {
             tile.possibles &= ~(1 << (typed_val - 1));
         }
     });
+    if (gameState.board[idx].cage_idx !== -1) {
+        gameStateForEachCage(gameState, gameState.board[idx].cage_idx, (tile) => {
+            if (tile.val === 0) {
+                tile.pencils &= ~(1 << (typed_val - 1));
+                tile.possibles &= ~(1 << (typed_val - 1));
+            }
+        });
+    }
 }
 
 
@@ -616,7 +624,6 @@ function Sudoku(props) {
             for (const idx in selected) {
                 let user_colors = selected[idx];
                 if (user_colors.includes(props.user_color)) {
-                    console.log("caging", idx);
                     newState.board[idx].cage_idx = new_cage_idx;
                     newState.cages[new_cage_idx].tiles.push(idx);
                 }
@@ -631,7 +638,13 @@ function Sudoku(props) {
             for (const idx in selected) {
                 let user_colors = selected[idx];
                 if (user_colors == props.user_color && !newState.board[idx].given) {
-                    newState.board[idx].val = 0;
+                    if (newState.board[idx].val !== 0) {
+                        newState.board[idx].val = 0;
+                    }
+                    else {
+                        newState.board[idx].pencils = 0;
+                        newState.board[idx].possibles = 0;
+                    }
                 }
             }
             setGameState(newState);
@@ -688,7 +701,7 @@ function Sudoku(props) {
                             newState.board[idx].val = num;
                             newState.board[idx].user_color = props.user_color;
                             if (props.autoErase) {
-                                doAutoErase(newState.board, idx);
+                                doAutoErase(newState, idx);
                             }
                         }
                     }
