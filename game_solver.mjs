@@ -1,4 +1,4 @@
-import { _idx } from './src/game_logic.mjs';
+import { gameStateForEachCage, _idx } from './src/game_logic.mjs';
 
 export const NO_SOLUTIONS = 0;
 export const NO_UNIQUE_SOLUTION = 1;
@@ -73,6 +73,255 @@ function initializeHardGame(gameState) {
 }
 
 
+function initializeKillerGame(gameState) {
+    gameState.board[0].cage_idx = 0;
+    gameState.board[1].cage_idx = 0;
+    gameState.cages.push({
+        sum: 11,
+        tiles: [0, 1]
+    });
+
+    gameState.board[2].cage_idx = 1;
+    gameState.board[9].cage_idx = 1;
+    gameState.cages.push({
+        sum: 5,
+        tiles: [2, 9]
+    });
+
+    gameState.board[10].cage_idx = 2;
+    gameState.board[11].cage_idx = 2;
+    gameState.board[14].cage_idx = 2;
+    gameState.board[18].cage_idx = 2;
+    gameState.board[21].cage_idx = 2;
+    gameState.cages.push({
+        sum: 26,
+        tiles: [10, 11, 14, 18, 21]
+    });
+
+    gameState.board[19].cage_idx = 3;
+    gameState.board[20].cage_idx = 3;
+    gameState.cages.push({
+        sum: 9,
+        tiles: [19, 20]
+    });
+
+    gameState.board[3].cage_idx = 4;
+    gameState.board[4].cage_idx = 4;
+    gameState.cages.push({
+        sum: 15,
+        tiles: [3, 4]
+    });
+
+    gameState.board[5].cage_idx = 5;
+    gameState.board[12].cage_idx = 5;
+    gameState.cages.push({
+        sum: 12,
+        tiles: [5, 12]
+    });
+
+    gameState.board[13].cage_idx = 6;
+    gameState.board[16].cage_idx = 6;
+    gameState.board[37].cage_idx = 6;
+    gameState.cages.push({
+        sum: 22,
+        tiles: [13, 16, 37]
+    });
+
+    gameState.board[22].cage_idx = 7;
+    gameState.board[23].cage_idx = 7;
+    gameState.board[26].cage_idx = 7;
+    gameState.cages.push({
+        sum: 14,
+        tiles: [22, 23, 26]
+    });
+
+    gameState.board[6].cage_idx = 8;
+    gameState.cages.push({
+        sum: 1,
+        tiles: [6]
+    });
+
+    gameState.board[7].cage_idx = 9;
+    gameState.board[8].cage_idx = 9;
+    gameState.cages.push({
+        sum: 11,
+        tiles: [7, 8]
+    });
+
+    gameState.board[15].cage_idx = 10;
+    gameState.board[36].cage_idx = 10;
+    gameState.cages.push({
+        sum: 7,
+        tiles: [15, 36]
+    });
+
+    gameState.board[17].cage_idx = 11;
+    gameState.board[24].cage_idx = 11;
+    gameState.cages.push({
+        sum: 13,
+        tiles: [17, 24]
+    });
+
+    gameState.board[25].cage_idx = 12;
+    gameState.board[46].cage_idx = 12;
+    gameState.board[47].cage_idx = 12;
+    gameState.board[49].cage_idx = 12;
+    gameState.cages.push({
+        sum: 23,
+        tiles: [25, 46, 47, 49]
+    });
+
+    gameState.board[27].cage_idx = 13;
+    gameState.board[28].cage_idx = 13;
+    gameState.board[30].cage_idx = 13;
+    gameState.board[33].cage_idx = 13;
+    gameState.cages.push({
+        sum: 16,
+        tiles: [27, 28, 30, 33]
+    });
+
+    gameState.board[29].cage_idx = 14;
+    gameState.board[32].cage_idx = 14;
+    gameState.board[35].cage_idx = 14;
+    gameState.board[56].cage_idx = 14;
+    gameState.cages.push({
+        sum: 22,
+        tiles: [29, 32, 35, 56]
+    });
+
+    gameState.board[38].cage_idx = 15;
+    gameState.board[41].cage_idx = 15;
+    gameState.cages.push({
+        sum: 14,
+        tiles: [38, 41]
+    });
+
+    gameState.board[45].cage_idx = 16;
+    gameState.board[48].cage_idx = 16;
+    gameState.cages.push({
+        sum: 4,
+        tiles: [45, 48]
+    });
+
+    gameState.board[31].cage_idx = 17;
+    gameState.board[34].cage_idx = 17;
+    gameState.board[55].cage_idx = 17;
+    gameState.cages.push({
+        sum: 14,
+        tiles: [31, 34, 55]
+    });
+
+    gameState.board[39].cage_idx = 18;
+    gameState.board[40].cage_idx = 18;
+    gameState.cages.push({
+        sum: 3,
+        tiles: [39, 40]
+    });
+
+    gameState.board[50].cage_idx = 19;
+    gameState.board[52].cage_idx = 19;
+    gameState.board[53].cage_idx = 19;
+    gameState.cages.push({
+        sum: 18,
+        tiles: [50, 52, 53]
+    });
+
+    gameState.board[42].cage_idx = 20;
+    gameState.board[43].cage_idx = 20;
+    gameState.board[63].cage_idx = 20;
+    gameState.board[64].cage_idx = 20;
+    gameState.cages.push({
+        sum: 22,
+        tiles: [42, 43, 63, 64]
+    });
+
+    gameState.board[44].cage_idx = 21;
+    gameState.cages.push({
+        sum: 3,
+        tiles: [44]
+    });
+
+    gameState.board[51].cage_idx = 22;
+    gameState.board[65].cage_idx = 22;
+    gameState.board[72].cage_idx = 22;
+    gameState.cages.push({
+        sum: 14,
+        tiles: [51, 65, 72]
+    });
+
+    gameState.board[54].cage_idx = 23;
+    gameState.cages.push({
+        sum: 3,
+        tiles: [54]
+    });
+
+    gameState.board[73].cage_idx = 24;
+    gameState.board[76].cage_idx = 24;
+    gameState.cages.push({
+        sum: 11,
+        tiles: [73, 76]
+    });
+
+    gameState.board[74].cage_idx = 25;
+    gameState.board[77].cage_idx = 25;
+    gameState.cages.push({
+        sum: 11,
+        tiles: [74, 77]
+    });
+
+    gameState.board[57].cage_idx = 26;
+    gameState.board[58].cage_idx = 26;
+    gameState.board[59].cage_idx = 26;
+    gameState.cages.push({
+        sum: 21,
+        tiles: [57, 58, 59]
+    });
+
+    gameState.board[67].cage_idx = 27;
+    gameState.board[68].cage_idx = 27;
+    gameState.board[69].cage_idx = 27;
+    gameState.cages.push({
+        sum: 9,
+        tiles: [67, 68, 69]
+    });
+
+    gameState.board[75].cage_idx = 28;
+    gameState.board[78].cage_idx = 28;
+    gameState.cages.push({
+        sum: 14,
+        tiles: [75, 78]
+    });
+
+    gameState.board[60].cage_idx = 29;
+    gameState.board[61].cage_idx = 29;
+    gameState.cages.push({
+        sum: 12,
+        tiles: [60, 61]
+    });
+
+    gameState.board[62].cage_idx = 30;
+    gameState.board[69].cage_idx = 30;
+    gameState.cages.push({
+        sum: 8,
+        tiles: [62, 69]
+    });
+
+    gameState.board[70].cage_idx = 31;
+    gameState.board[71].cage_idx = 31;
+    gameState.cages.push({
+        sum: 13,
+        tiles: [70, 71]
+    });
+
+    gameState.board[79].cage_idx = 32;
+    gameState.board[80].cage_idx = 32;
+    gameState.cages.push({
+        sum: 4,
+        tiles: [79, 80]
+    });
+}
+
+
 
 // bit to be set in solver state array to indicate that this cell is a pset, not
 // a given/found value
@@ -137,19 +386,26 @@ function createSolverState(gameState) {
     let arr = [];
 	for (let r = 0; r < 9; r++) {
 		for (let c = 0; c < 9; c++) {
-			let val = gameState.board[_idx(r, c)].val;
+            let idx = _idx(r, c);
+			let val = gameState.board[idx].val;
 			if (val === 0) {
 				val = pSetInit() | PSET_BIT;
 			}
-			arr.push(val);
+			arr.push({
+                val: val,
+                cage_idx: gameState.board[idx].cage_idx
+            });
 		}
 	}
-    return arr;
+    return {
+        arr: arr,
+        cages: gameState.cages
+    };
 }
 
 
 function tileIsResolved(tile) {
-	return (tile & PSET_BIT) === 0;
+	return (tile.val & PSET_BIT) === 0;
 }
 
 
@@ -159,9 +415,9 @@ function eliminateTile(arr, idx, num) {
 		// already resolved
 		return false;
 	}
-	if (pSetIncludes(tile, num)) {
+	if (pSetIncludes(tile.val, num)) {
         // the number was a possibility here before
-        arr[idx] = pSetRemove(tile, num);
+        arr[idx].val = pSetRemove(tile.val, num);
 		return true;
 	}
 	// the number already wasn't a possibility
@@ -169,7 +425,10 @@ function eliminateTile(arr, idx, num) {
 }
 
 // returns true if anything was eliminated, false otherwise
-function eliminate(arr) {
+function eliminate(state) {
+    let arr = state.arr;
+    let cages = state.cages;
+
 	let changed = false;
 	for (let r = 0; r < 9; r++) {
 		for (let c = 0; c < 9; c++) {
@@ -185,19 +444,26 @@ function eliminate(arr) {
 
 			for (let _r = 0; _r < 3; _r++) {
 				for (let _c = 0; _c < 3; _c++) {
-					changed = eliminateTile(arr, (br + _r) * 9 + (bc + _c), tile) || changed;
+					changed = eliminateTile(arr, (br + _r) * 9 + (bc + _c), tile.val) || changed;
 				}
 			}
 
 			// go through column
 			for (let _r = 0; _r < 9; _r++) {
-				changed = eliminateTile(arr, _r * 9 + c, tile) || changed;
+				changed = eliminateTile(arr, _r * 9 + c, tile.val) || changed;
 			}
 
 			// go through row
 			for (let _c = 0; _c < 9; _c++) {
-				changed = eliminateTile(arr, r * 9 + _c, tile) || changed;
+				changed = eliminateTile(arr, r * 9 + _c, tile.val) || changed;
 			}
+
+            // go through cage
+            if (tile.cage_idx !== -1) {
+                for (let _c = 0; _c < cages[tile.cage_idx].tiles.length; _c++) {
+                    changed = eliminateTile(arr, cages[tile.cage_idx].tiles[_c], tile.val) || changed;
+                }
+            }
 		}
 	}
 	return changed;
@@ -209,8 +475,8 @@ function resolveGame(arr) {
 	for (let r = 0; r < 9; r++) {
 		for (let c = 0; c < 9; c++) {
 			let tile = arr[r * 9 + c];
-			if (!tileIsResolved(tile) && pSetSize(tile) === 1) {
-				arr[r * 9 + c] = pSetResolve(tile);
+			if (!tileIsResolved(tile) && pSetSize(tile.val) === 1) {
+				arr[r * 9 + c].val = pSetResolve(tile.val);
 				changed = true;
 			}
 		}
@@ -218,11 +484,14 @@ function resolveGame(arr) {
 	return changed;
 }
 
-function anyContradictions(arr) {
+function anyContradictions(state) {
+    let arr = state.arr;
+    let cages = state.cages;
+
 	for (let r = 0; r < 9; r++) {
 		for (let c = 0; c < 9; c++) {
 			let tile = arr[r * 9 + c];
-			if (!tileIsResolved(tile) && pSetSize(tile) === 0) {
+			if (!tileIsResolved(tile) && pSetSize(tile.val) === 0) {
 				return true;
 			}
 		}
@@ -237,7 +506,7 @@ function anyContradictions(arr) {
 			if (!tileIsResolved(tile)) {
 				continue;
 			}
-			let mask = (1 << (tile - 1));
+			let mask = (1 << (tile.val - 1));
 			if ((m & mask) !== 0) {
 				return true;
 			}
@@ -252,7 +521,7 @@ function anyContradictions(arr) {
 			if (!tileIsResolved(tile)) {
 				continue;
 			}
-			let mask = (1 << (tile - 1));
+			let mask = (1 << (tile.val - 1));
 			if ((m & mask) !== 0) {
 				return true;
 			}
@@ -270,13 +539,43 @@ function anyContradictions(arr) {
 			if (!tileIsResolved(tile)) {
 				continue;
 			}
-			let mask = (1 << (tile - 1));
+			let mask = (1 << (tile.val - 1));
 			if ((m & mask) !== 0) {
 				return true;
 			}
 			m |= mask;
 		}
 	}
+	// check cages
+    for (let c = 0; c < cages.length; c++) {
+        let cage = cages[c];
+        let all_resolved = true;
+        let sum = 0;
+        let m = 0;
+
+        for (let i = 0; i < cage.tiles.length; i++) {
+            let tile = arr[cage.tiles[i]];
+            if (!tileIsResolved(tile)) {
+                all_resolved = false;
+                continue;
+            }
+
+            let mask = (1 << (tile.val - 1));
+			if ((m & mask) !== 0) {
+				return true;
+			}
+			m |= mask;
+
+            sum += tile.val;
+            if (sum > cage.sum) {
+                return true;
+            }
+        }
+
+        if (all_resolved && sum !== cage.sum) {
+            return true;
+        }
+    }
 	return false;
 }
 
@@ -300,7 +599,7 @@ function findBestGuessTile(arr) {
 		for (let c = 0; c < 9; c++) {
 			let tile = arr[r * 9 + c];
 			if (!tileIsResolved(tile)) {
-				let l = pSetSize(tile);
+				let l = pSetSize(tile.val);
 				if (l < min_poss) {
 					min_poss = l;
 					best_idx = r * 9 + c;
@@ -313,22 +612,26 @@ function findBestGuessTile(arr) {
 
 
 function stateDeepCopy(state) {
-	return [...state];
+	return {
+        arr: [...state.arr],
+        // no need to copy cages because they are const
+        cages: state.cages
+    };
 }
 
 
-function printGame(arr) {
+function printGame({arr, cages}) {
 	for (let r = 0; r < 9; r++) {
 		let str = "";
 		for (let c = 0; c < 9; c++) {
 			let tile = arr[r * 9 + c];
 			if (tileIsResolved(tile)) {
-				str += tile.toString() + "           ";
+				str += tile.val.toString() + "           ";
 			}
 			else {
 				str += "[";
 				for (let i = 1; i <= 9; i++) {
-					if (pSetIncludes(tile, i)) {
+					if (pSetIncludes(tile.val, i)) {
 						str += i.toString();
 					}
 					else {
@@ -350,25 +653,27 @@ function printGame(arr) {
 	console.log();
 }
 
-function findSoln(arr) {
+function findSoln(state) {
+    let arr = state.arr;
 
-	while ((eliminate(arr) || resolveGame(arr)) && !anyContradictions(arr));
+	while ((eliminate(state) || resolveGame(arr)) && !anyContradictions(state));
+    printGame(state);
 
-	if (anyContradictions(arr)) {
+	if (anyContradictions(state)) {
 		return NO_SOLUTIONS;
 	}
 	if (isSolved(arr)) {
-		return arr;
+		return state;
 	}
 	let idx = findBestGuessTile(arr);
 	let possibleSolns = [];
 	let no_unique = false;
-	pSetForEach(arr[idx], (poss) => {
+	pSetForEach(arr[idx].val, (poss) => {
 		// if we already have more than 1 solution, no need to try and find even more
 		if (!no_unique && possibleSolns.length <= 1) {
-			let arrCpy = stateDeepCopy(arr);
-			arrCpy[idx] = poss;
-			let sln = findSoln(arrCpy);
+			let state_copy = stateDeepCopy(state);
+			state_copy.arr[idx].val = poss;
+			let sln = findSoln(state_copy);
 			if (sln === NO_SOLUTIONS) {
 			}
 			else if (sln === NO_UNIQUE_SOLUTION) {
@@ -391,9 +696,9 @@ function findSoln(arr) {
 }
 
 export async function solveGame(gameState) {
-    initializeHardGame(gameState);
-    let arr = createSolverState(gameState);
-    let soln = findSoln(arr);
+    initializeKillerGame(gameState);
+    let state = createSolverState(gameState);
+    let soln = findSoln(state);
     return soln;
 }
 

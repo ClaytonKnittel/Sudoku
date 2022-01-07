@@ -274,7 +274,7 @@ export default function init(app) {
                     g_history[g_history_idx].gameState.verbal_hint = verbal_hint;
                 }
                 else /* req_level === HINT_LVL3 */ {
-                    g_current_state.board[g_idx].val = g_solution[tile_idx];
+                    g_current_state.board[g_idx].val = g_solution.arr[tile_idx].val;
                     g_current_state.board[g_idx].revealed = true;
                     gameStateChanged();
                 }
@@ -546,12 +546,12 @@ function update_game(socket, data) {
 // returns true if the current game state is on the right track, i.e. no discrepancies
 // between it and the correct solution so far
 function onRightTrack() {
-	for (let i = 0; i < g_solution.length; i++) {
+	for (let i = 0; i < g_solution.arr.length; i++) {
 		let r = Math.floor(i / 9);
 		let c = i % 9;
 
 		let tile = g_current_state.board[_idx(r, c)];
-		let ans  = g_solution[r * 9 + c];
+		let ans  = g_solution.arr[r * 9 + c].val;
 
 		if (tile.val !== 0 && ans !== tile.val) {
 			return false;
@@ -579,12 +579,12 @@ function verify_cells(socket, data) {
 
     let changed = false;
 
-	for (let i = 0; i < g_solution.length; i++) {
+	for (let i = 0; i < g_solution.arr.length; i++) {
 		let r = Math.floor(i / 9);
 		let c = i % 9;
 
 		let tile = g_current_state.board[_idx(r, c)];
-		let ans  = g_solution[r * 9 + c];
+		let ans  = g_solution.arr[r * 9 + c].val;
 
 		if (tile.val !== 0 && ans !== tile.val) {
 			// make all incorrect cells negative
