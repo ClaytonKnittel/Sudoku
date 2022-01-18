@@ -889,7 +889,6 @@ function clearState(gameState, setGameState, state, setBoth, finished, resetFn) 
         resetFn();
     }
     else if (!anyNonGivens(gameState) && state !== 0) {
-        console.log("NO NON GIVEN");
         // set all givens back to non-givens
         new_gameState = copyGameState(gameState);
         for (let i = 0; i < new_gameState.board.length; i++) {
@@ -899,7 +898,6 @@ function clearState(gameState, setGameState, state, setBoth, finished, resetFn) 
         setBoth(0, new_gameState);
     }
     else {
-        console.log("CLEAR");
         new_gameState = copyGameState(gameState);
         for (let i = 0; i < new_gameState.board.length; i++) {
             let tileState = new_gameState.board[i];
