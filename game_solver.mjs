@@ -1,3 +1,4 @@
+import { gameStateIsEmpty } from './src/game_logic.mjs';
 import { _idx, _idx_to_rc } from './src/game_logic.mjs';
 
 export const NO_SOLUTIONS = 0;
@@ -318,6 +319,457 @@ function initializeKillerGame(gameState) {
     gameState.cages.push({
         sum: 4,
         tiles: [79, 80]
+    });
+}
+
+function initializeMediumKillerGame(gameState) {
+    gameState.board[0].cage_idx = 0;
+    gameState.board[1].cage_idx = 0;
+    gameState.board[3].cage_idx = 0;
+    gameState.cages.push({
+        sum: 15,
+        tiles: [0, 1, 3]
+    });
+
+    gameState.board[2].cage_idx = 1;
+    gameState.board[9].cage_idx = 1;
+    gameState.board[10].cage_idx = 1;
+    gameState.cages.push({
+        sum: 18,
+        tiles: [2, 9, 10]
+    });
+
+    gameState.board[4].cage_idx = 2;
+    gameState.board[7].cage_idx = 2;
+    gameState.cages.push({
+        sum: 11,
+        tiles: [4, 7]
+    });
+
+    gameState.board[5].cage_idx = 3;
+    gameState.board[12].cage_idx = 3;
+    gameState.cages.push({
+        sum: 4,
+        tiles: [5, 12]
+    });
+
+    gameState.board[6].cage_idx = 4;
+    gameState.board[27].cage_idx = 4;
+    gameState.board[30].cage_idx = 4;
+    gameState.cages.push({
+        sum: 13,
+        tiles: [6, 27, 30]
+    });
+
+    gameState.board[8].cage_idx = 5;
+    gameState.board[15].cage_idx = 5;
+    gameState.board[36].cage_idx = 5;
+    gameState.cages.push({
+        sum: 17,
+        tiles: [8, 15, 36]
+    });
+
+    gameState.board[11].cage_idx = 6;
+    gameState.board[14].cage_idx = 6;
+    gameState.cages.push({
+        sum: 7,
+        tiles: [11, 14]
+    });
+
+    gameState.board[13].cage_idx = 7;
+    gameState.board[16].cage_idx = 7;
+    gameState.board[17].cage_idx = 7;
+    gameState.cages.push({
+        sum: 20,
+        tiles: [13, 16, 17]
+    });
+
+    gameState.board[18].cage_idx = 8;
+    gameState.board[19].cage_idx = 8;
+    gameState.board[20].cage_idx = 8;
+    gameState.cages.push({
+        sum: 15,
+        tiles: [18, 19, 20]
+    });
+
+    gameState.board[21].cage_idx = 9;
+    gameState.board[24].cage_idx = 9;
+    gameState.board[45].cage_idx = 9;
+    gameState.cages.push({
+        sum: 24,
+        tiles: [21, 24, 45]
+    });
+
+    gameState.board[22].cage_idx = 10;
+    gameState.board[23].cage_idx = 10;
+    gameState.cages.push({
+        sum: 10,
+        tiles: [22, 23]
+    });
+
+    gameState.board[25].cage_idx = 11;
+    gameState.board[46].cage_idx = 11;
+    gameState.cages.push({
+        sum: 4,
+        tiles: [25, 46]
+    });
+
+    gameState.board[26].cage_idx = 12;
+    gameState.board[47].cage_idx = 12;
+    gameState.cages.push({
+        sum: 12,
+        tiles: [26, 47]
+    });
+
+    gameState.board[28].cage_idx = 13;
+    gameState.board[29].cage_idx = 13;
+    gameState.cages.push({
+        sum: 7,
+        tiles: [28, 29]
+    });
+
+    gameState.board[31].cage_idx = 14;
+    gameState.board[32].cage_idx = 14;
+    gameState.cages.push({
+        sum: 12,
+        tiles: [31, 32]
+    });
+
+    gameState.board[33].cage_idx = 15;
+    gameState.board[54].cage_idx = 15;
+    gameState.cages.push({
+        sum: 12,
+        tiles: [33, 54]
+    });
+
+    gameState.board[34].cage_idx = 16;
+    gameState.board[55].cage_idx = 16;
+    gameState.cages.push({
+        sum: 7,
+        tiles: [34, 55]
+    });
+
+    gameState.board[35].cage_idx = 17;
+    gameState.board[56].cage_idx = 17;
+    gameState.board[59].cage_idx = 17;
+    gameState.cages.push({
+        sum: 17,
+        tiles: [35, 56, 59]
+    });
+
+    gameState.board[37].cage_idx = 18;
+    gameState.board[40].cage_idx = 18;
+    gameState.board[43].cage_idx = 18;
+    gameState.cages.push({
+        sum: 11,
+        tiles: [37, 40, 43]
+    });
+
+    gameState.board[38].cage_idx = 19;
+    gameState.board[41].cage_idx = 19;
+    gameState.cages.push({
+        sum: 13,
+        tiles: [38, 41]
+    });
+
+    gameState.board[39].cage_idx = 20;
+    gameState.board[42].cage_idx = 20;
+    gameState.cages.push({
+        sum: 6,
+        tiles: [39, 42]
+    });
+
+    gameState.board[44].cage_idx = 21;
+    gameState.board[65].cage_idx = 21;
+    gameState.board[72].cage_idx = 21;
+    gameState.cages.push({
+        sum: 17,
+        tiles: [44, 65, 72]
+    });
+
+    gameState.board[48].cage_idx = 22;
+    gameState.board[49].cage_idx = 22;
+    gameState.cages.push({
+        sum: 8,
+        tiles: [48, 49]
+    });
+
+    gameState.board[50].cage_idx = 23;
+    gameState.board[53].cage_idx = 23;
+    gameState.board[74].cage_idx = 23;
+    gameState.cages.push({
+        sum: 16,
+        tiles: [50, 53, 74]
+    });
+
+    gameState.board[51].cage_idx = 24;
+    gameState.board[52].cage_idx = 24;
+    gameState.cages.push({
+        sum: 5,
+        tiles: [51, 52]
+    });
+
+    gameState.board[57].cage_idx = 25;
+    gameState.board[58].cage_idx = 25;
+    gameState.cages.push({
+        sum: 10,
+        tiles: [57, 58]
+    });
+
+    gameState.board[60].cage_idx = 26;
+    gameState.board[61].cage_idx = 26;
+    gameState.board[62].cage_idx = 26;
+    gameState.cages.push({
+        sum: 17,
+        tiles: [60, 61, 62]
+    });
+
+    gameState.board[63].cage_idx = 27;
+    gameState.board[64].cage_idx = 27;
+    gameState.board[67].cage_idx = 27;
+    gameState.cages.push({
+        sum: 16,
+        tiles: [63, 64, 67]
+    });
+
+    gameState.board[66].cage_idx = 28;
+    gameState.board[69].cage_idx = 28;
+    gameState.cages.push({
+        sum: 15,
+        tiles: [66, 69]
+    });
+
+    gameState.board[68].cage_idx = 29;
+    gameState.board[75].cage_idx = 29;
+    gameState.cages.push({
+        sum: 7,
+        tiles: [68, 75]
+    });
+
+    gameState.board[70].cage_idx = 30;
+    gameState.board[71].cage_idx = 30;
+    gameState.board[78].cage_idx = 30;
+    gameState.cages.push({
+        sum: 12,
+        tiles: [70, 71, 78]
+    });
+
+    gameState.board[73].cage_idx = 31;
+    gameState.board[76].cage_idx = 31;
+    gameState.cages.push({
+        sum: 9,
+        tiles: [73, 76]
+    });
+
+    gameState.board[77].cage_idx = 32;
+    gameState.board[79].cage_idx = 32;
+    gameState.board[80].cage_idx = 32;
+    gameState.cages.push({
+        sum: 18,
+        tiles: [77, 79, 80]
+    });
+}
+
+function initializeHardKillerGame(gameState) {
+    gameState.board[0].cage_idx = 0;
+    gameState.board[1].cage_idx = 0;
+    gameState.board[3].cage_idx = 0;
+    gameState.cages.push({
+        sum: 15,
+        tiles: [0, 1, 3]
+    });
+
+    gameState.board[2].cage_idx = 1;
+    gameState.board[9].cage_idx = 1;
+    gameState.board[10].cage_idx = 1;
+    gameState.board[13].cage_idx = 1;
+    gameState.cages.push({
+        sum: 25,
+        tiles: [2, 9, 10, 13]
+    });
+
+    gameState.board[4].cage_idx = 2;
+    gameState.board[5].cage_idx = 2;
+    gameState.board[7].cage_idx = 2;
+    gameState.board[8].cage_idx = 2;
+    gameState.board[12].cage_idx = 2;
+    gameState.board[28].cage_idx = 2;
+    gameState.cages.push({
+        sum: 27,
+        tiles: [4, 5, 7, 8, 12, 28]
+    });
+
+    gameState.board[6].cage_idx = 3;
+    gameState.board[27].cage_idx = 3;
+    gameState.board[30].cage_idx = 3;
+    gameState.board[31].cage_idx = 3;
+    gameState.cages.push({
+        sum: 20,
+        tiles: [6, 27, 30, 31]
+    });
+
+    gameState.board[11].cage_idx = 4;
+    gameState.board[18].cage_idx = 4;
+    gameState.cages.push({
+        sum: 9,
+        tiles: [11, 18]
+    });
+
+    gameState.board[14].cage_idx = 5;
+    gameState.board[17].cage_idx = 5;
+    gameState.cages.push({
+        sum: 12,
+        tiles: [14, 17]
+    });
+
+    gameState.board[15].cage_idx = 6;
+    gameState.board[16].cage_idx = 6;
+    gameState.board[29].cage_idx = 6;
+    gameState.board[32].cage_idx = 6;
+    gameState.board[36].cage_idx = 6;
+    gameState.cages.push({
+        sum: 18,
+        tiles: [15, 16, 29, 32, 36]
+    });
+
+    gameState.board[19].cage_idx = 7;
+    gameState.board[20].cage_idx = 7;
+    gameState.board[23].cage_idx = 7;
+    gameState.cages.push({
+        sum: 15,
+        tiles: [19, 20, 23]
+    });
+
+    gameState.board[21].cage_idx = 8;
+    gameState.board[24].cage_idx = 8;
+    gameState.cages.push({
+        sum: 6,
+        tiles: [21, 24]
+    });
+
+    gameState.board[22].cage_idx = 9;
+    gameState.board[25].cage_idx = 9;
+    gameState.cages.push({
+        sum: 10,
+        tiles: [22, 25]
+    });
+
+    gameState.board[26].cage_idx = 10;
+    gameState.board[47].cage_idx = 10;
+    gameState.board[50].cage_idx = 10;
+    gameState.board[53].cage_idx = 10;
+    gameState.board[74].cage_idx = 10;
+    gameState.cages.push({
+        sum: 24,
+        tiles: [26, 47, 50, 53, 74]
+    });
+
+    gameState.board[33].cage_idx = 11;
+    gameState.board[54].cage_idx = 11;
+    gameState.cages.push({
+        sum: 10,
+        tiles: [33, 54]
+    });
+
+    gameState.board[34].cage_idx = 12;
+    gameState.board[35].cage_idx = 12;
+    gameState.cages.push({
+        sum: 12,
+        tiles: [34, 35]
+    });
+
+    gameState.board[37].cage_idx = 13;
+    gameState.board[38].cage_idx = 13;
+    gameState.board[45].cage_idx = 13;
+    gameState.board[46].cage_idx = 13;
+    gameState.cages.push({
+        sum: 22,
+        tiles: [37, 38, 45, 46]
+    });
+
+    gameState.board[39].cage_idx = 14;
+    gameState.board[42].cage_idx = 14;
+    gameState.board[63].cage_idx = 14;
+    gameState.board[66].cage_idx = 14;
+    gameState.cages.push({
+        sum: 27,
+        tiles: [39, 42, 63, 66]
+    });
+
+    gameState.board[40].cage_idx = 15;
+    gameState.board[41].cage_idx = 15;
+    gameState.board[43].cage_idx = 15;
+    gameState.board[48].cage_idx = 15;
+    gameState.board[64].cage_idx = 15;
+    gameState.cages.push({
+        sum: 27,
+        tiles: [40, 41, 43, 48, 64]
+    });
+
+    gameState.board[44].cage_idx = 16;
+    gameState.board[51].cage_idx = 16;
+    gameState.board[65].cage_idx = 16;
+    gameState.cages.push({
+        sum: 24,
+        tiles: [44, 51, 65]
+    });
+
+    gameState.board[49].cage_idx = 17;
+    gameState.board[52].cage_idx = 17;
+    gameState.cages.push({
+        sum: 6,
+        tiles: [49, 52]
+    });
+
+    gameState.board[55].cage_idx = 18;
+    gameState.board[56].cage_idx = 18;
+    gameState.cages.push({
+        sum: 12,
+        tiles: [55, 56]
+    });
+
+    gameState.board[57].cage_idx = 19;
+    gameState.board[60].cage_idx = 19;
+    gameState.board[61].cage_idx = 19;
+    gameState.cages.push({
+        sum: 10,
+        tiles: [57, 60, 61]
+    });
+
+    gameState.board[58].cage_idx = 20;
+    gameState.board[59].cage_idx = 20;
+    gameState.cages.push({
+        sum: 13,
+        tiles: [58, 59]
+    });
+
+    gameState.board[62].cage_idx = 21;
+    gameState.board[69].cage_idx = 21;
+    gameState.board[70].cage_idx = 21;
+    gameState.board[71].cage_idx = 21;
+    gameState.board[78].cage_idx = 21;
+    gameState.cages.push({
+        sum: 22,
+        tiles: [62, 69, 70, 71, 78]
+    });
+
+    gameState.board[67].cage_idx = 22;
+    gameState.board[68].cage_idx = 22;
+    gameState.cages.push({
+        sum: 8,
+        tiles: [67, 68]
+    });
+
+    gameState.board[72].cage_idx = 23;
+    gameState.board[73].cage_idx = 23;
+    gameState.board[75].cage_idx = 23;
+    gameState.board[76].cage_idx = 23;
+    gameState.board[77].cage_idx = 23;
+    gameState.board[79].cage_idx = 23;
+    gameState.board[80].cage_idx = 23;
+    gameState.cages.push({
+        sum: 31,
+        tiles: [72, 73, 75, 76, 77, 79, 80]
     });
 }
 
@@ -772,7 +1224,10 @@ function findSoln(state, depth) {
 }
 
 export async function solveGame(gameState) {
-    initializeKillerGame(gameState);
+    if (gameStateIsEmpty(gameState)) {
+        initializeMediumKillerGame(gameState);
+    }
+
     let state = createSolverState(gameState);
     let soln = findSoln(state, 0);
     return soln;

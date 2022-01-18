@@ -5,6 +5,15 @@ export const HINT_LVL2 = 2;
 export const HINT_LVL3 = 3;
 
 
+export function isNumeric(n) {
+    return typeof n === "number";
+}
+
+export function isIntegerString(s) {
+    return !isNaN(parseFloat(s)) && isFinite(s);
+}
+
+
 export function initTile() {
     return {
         val: 0,
@@ -145,7 +154,7 @@ export function validGameState(gameState) {
             console.log("malformed tile", i);
             return false;
         }
-        if (t.val < -9 || t.val > 9) {
+        if (!isNumeric(t.val) || t.val < -9 || t.val > 9) {
             console.log(t.val, "oob");
             return false;
         }
@@ -167,6 +176,11 @@ export function validGameState(gameState) {
             return false;
         }
 
+        if (!isNumeric(c.sum)) {
+            console.log(c.sum, "nan");
+            return false;
+        }
+
         let prev_tile_idx = -1;
         for (let j = 0; j < c.tiles.length; j++) {
             let tile_idx = c.tiles[j];
@@ -184,6 +198,24 @@ export function validGameState(gameState) {
         }
     }
 
+    return true;
+}
+
+export function gameStateIsEmpty(gameState) {
+    for (let i = 0; i < gameState.board.length; i++) {
+        if (gameState.board[i].val !== 0) {
+            return false;
+        }
+        if (gameState.board[i].pencils !== 0) {
+            return false;
+        }
+        if (gameState.board[i].possibles !== 0) {
+            return false;
+        }
+        if (gameState.board[i].cage_idx !== -1) {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -425,9 +457,33 @@ export function checkGameOver(gameState) {
     return checkState(gameState) == RIGHT;
 }
 
+export function getCageTotalCell(gameState, cage_idx) {
+    const cage = gameState.cages[cage_idx];
+
+    let min_screen_idx = Infinity;
+    for (let i = 0; i < cage.tiles.length; i++) {
+        let [r, c] = _idx_to_rc(cage.tiles[i]);
+        min_screen_idx = Math.min(min_screen_idx, 9 * r + c);
+    }
+    let r = Math.floor(min_screen_idx / 9);
+    let c = min_screen_idx % 9;
+    return _idx(r, c);
+}
+
 export function isCageTotalCell(gameState, idx) {
     const cage_idx = gameState.board[idx].cage_idx;
-    return cage_idx !== -1 && gameState.cages[cage_idx].tiles[0] === idx;
+    return cage_idx !== -1 && getCageTotalCell(gameState, cage_idx) === idx;
+}
+
+// deletes the given cage, may be called on any number of cages and the indexes
+// of all other cages are unaffected. This leaves the game in an invalid state
+// however, so organizeCages must be called once the deleting is finished.
+export function deleteCage(gameState, cage_idx) {
+    const cage = gameState.cages[cage_idx];
+    for (let i = 0; i < cage.tiles.length; i++) {
+        gameState.board[cage.tiles[i]].cage_idx = -1;
+    }
+    gameState.cages[cage_idx].tiles = [];
 }
 
 // reorders cage_idxs, removing cages which are no longer present on the board anywhere

@@ -2,6 +2,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import io from 'socket.io-client';
+import { isIntegerString } from './game_logic.mjs';
+import { tilesAreConnected } from './game_logic.mjs';
+import { deleteCage } from './game_logic.mjs';
 
 import { NO_HINT,
          HINT_LVL1,
@@ -614,7 +617,24 @@ function Sudoku(props) {
         }
 
         if ((e.key === "c" || e.key === "C") && props.state === 0) {
+            let selected_list = [];
+            for (const idx in selected) {
+                let user_colors = selected[idx];
+                if (user_colors.includes(props.user_color)) {
+                    selected_list.push(parseInt(idx));
+                }
+            }
+            if (!tilesAreConnected(selected_list)) {
+                window.alert("Must select a connected set of tiles for cages!");
+                return;
+            }
+
             let user_sum = window.prompt("Enter the sum for this cage:");
+            if (!isIntegerString(user_sum)) {
+                return;
+            }
+            user_sum = parseInt(user_sum);
+
             let new_cage_idx = newState.cages.length;
             newState.cages.push({
                 sum: user_sum,
@@ -629,7 +649,20 @@ function Sudoku(props) {
                 }
             }
             organizeCages(newState);
-            validGameState(newState);
+            if (!validGameState(newState)) {
+                return;
+            }
+            setGameState(newState);
+            return;
+        }
+
+        if ((e.key === "d" || e.key === "D") && props.state === 0) {
+            for (const idx in selected) {
+                if (gameState.board[idx].cage_idx !== -1) {
+                    deleteCage(newState, gameState.board[idx].cage_idx);
+                }
+            }
+            organizeCages(newState);
             setGameState(newState);
             return;
         }
@@ -872,43 +905,43 @@ function Ctrl(props) {
 }
 
 
-function clearState(gameState, mode, setGameState, setBoth, finished, resetFn) {
-    let state;
+function clearState(gameState, setGameState, state, setBoth, finished, resetFn) {
+    let new_gameState;
     if (finished) {
         resetFn();
     }
-    else if (!anyNonGivens(gameState)) {
+    else if (!anyNonGivens(gameState) && state !== 0) {
         // set all givens back to non-givens
-        state = copyGameState(gameState);
-        for (let i = 0; i < state.board.length; i++) {
-            let tileState = state.board[i];
+        new_gameState = copyGameState(gameState);
+        for (let i = 0; i < new_gameState.board.length; i++) {
+            let tileState = new_gameState.board[i];
             tileState.given = false;
         }
-        setBoth(0, state);
+        setBoth(0, new_gameState);
     }
     else {
-        state = copyGameState(gameState);
-        for (let i = 0; i < state.board.length; i++) {
-            let tileState = state.board[i];
+        new_gameState = copyGameState(gameState);
+        for (let i = 0; i < new_gameState.board.length; i++) {
+            let tileState = new_gameState.board[i];
             if (!(tileState.given)) {
-                state.board[i].val = 0;
-                state.board[i].user_color = -1;
+                new_gameState.board[i].val = 0;
+                new_gameState.board[i].user_color = -1;
             }
-            if (mode === 0) {
-                state.board[i].cage_idx = -1;
+            if (state === 0) {
+                new_gameState.board[i].cage_idx = -1;
             }
         }
-        if (mode === 0) {
-            state.cages = [];
+        if (state === 0) {
+            new_gameState.cages = [];
         }
-        setGameState(state);
+        setGameState(new_gameState);
     }
 }
 
 
-function ClearButton({ gameState, mode, setGameState, state, setBoth, finished, resetFn }) {
+function ClearButton({ gameState, setGameState, state, setBoth, finished, resetFn }) {
     return (<div className="button" onClick={() => {
-        clearState(gameState, mode, setGameState, setBoth, finished, resetFn);
+        clearState(gameState, setGameState, state, setBoth, finished, resetFn);
     }}>
         {finished ? "reset" : ((anyNonGivens(gameState) || state == 0) ? "clear" : "re-enter")}
     </div>);
@@ -1185,7 +1218,7 @@ function Screen() {
                     hidePossibles={hidePossibles} autoErase={autoErase} />
         </div>
         <div className="buttonContainer">
-            <ClearButton gameState={gameState} mode={mode} setGameState={changeGameState} state={state}
+            <ClearButton gameState={gameState} setGameState={changeGameState} state={state}
                         setBoth={setBoth} finished={finished} resetFn={resetFn}/>
             <CheckButton gameState={gameState}/>
             <HintButton gameState={gameState}/>
