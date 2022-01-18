@@ -5,7 +5,7 @@
   "main": "public/index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --mode production -c webpack.config.js && cp ./src/index.html ./public/index.html && cp ./src/style.css ./public/style.css",
+    "build": "make",
     "start": "node server.mjs"
   },
   "author": "",
@@ -22,8 +22,8 @@
     "path": "^0.12.7",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "socket.io-client": "^4.4.0",
     "socket.io": "^4.4.0",
+    "socket.io-client": "^4.4.0",
     "url": "^0.11.0"
   },
   "devDependencies": {
