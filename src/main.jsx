@@ -123,28 +123,10 @@ function Pencils(props) {
         {bottom: 0, left: "66.666%", transform: "translateX(-50%)"},
         {bottom: 0, right: 0}
     ];
-    const styles10 = [
-        {top: 0, left: 0},
-        {top: 0, left: "25%", transform: "translateX(-50%)"},
-        {top: 0, left: "50%", transform: "translateX(-50%)"},
-        {top: 0, left: "75%", transform: "translateX(-50%)"},
-        {top: 0, right: 0},
-        {bottom: 0, left: 0},
-        {bottom: 0, left: "25%", transform: "translateX(-50%)"},
-        {bottom: 0, left: "50%", transform: "translateX(-50%)"},
-        {bottom: 0, left: "75%", transform: "translateX(-50%)"},
-        {bottom: 0, right: 0}
-    ];
-
-    const isTotalCell = isCageTotalCell(props.gameState, props.idx);
 
     let count = 0;
     for (let i = 0; i < 9; i++) {
         count += ((props.bits >> i) & 1);
-    }
-
-    if (isTotalCell) {
-        count++;
     }
 
     let color_style = user_colors[props.color];
@@ -168,10 +150,6 @@ function Pencils(props) {
 
     let lis = [];
     let n = 0;
-    if (isTotalCell) {
-        lis.push(<span className="pencil" style={{...color_style, ...styles[n]}} />);
-        n++;
-    }
     for (let i = 0; i < 9; i++) {
         if (((props.bits >> i) & 1) === 1) {
             lis.push(<span key={i} className="pencil" style={{...color_style, ...styles[n]}}>{i + 1}</span>);
@@ -407,6 +385,8 @@ function Tile(props) {
             style={sel_style} onMouseDown={() => {
                 setSelected(props.idx);
             }}>
+            <div className="pouting_face" style={revealed ? {} : { display: "none" }}>🥺</div>
+            <CageOutline gameState={props.gameState} idx={props.idx} bgCol={bg_col} />
             <div className={`number_cell${empty ? '' : ' nonempty'}${given ? ' given' : (val !== 0 ? ' guess' : '')}`}>
                 {val === 0 ?
                     <div>
@@ -417,8 +397,6 @@ function Tile(props) {
                     <div style={color_style}>{val}</div>
                 </div>}
             </div>
-            <div className="pouting_face" style={revealed ? {} : { display: "none" }}>🥺</div>
-            <CageOutline gameState={props.gameState} idx={props.idx} bgCol={bg_col} />
         </span>);
 }
 
@@ -911,6 +889,7 @@ function clearState(gameState, setGameState, state, setBoth, finished, resetFn) 
         resetFn();
     }
     else if (!anyNonGivens(gameState) && state !== 0) {
+        console.log("NO NON GIVEN");
         // set all givens back to non-givens
         new_gameState = copyGameState(gameState);
         for (let i = 0; i < new_gameState.board.length; i++) {
@@ -920,11 +899,14 @@ function clearState(gameState, setGameState, state, setBoth, finished, resetFn) 
         setBoth(0, new_gameState);
     }
     else {
+        console.log("CLEAR");
         new_gameState = copyGameState(gameState);
         for (let i = 0; i < new_gameState.board.length; i++) {
             let tileState = new_gameState.board[i];
             if (!(tileState.given)) {
                 new_gameState.board[i].val = 0;
+                new_gameState.board[i].pencils = 0;
+                new_gameState.board[i].possibles = 0;
                 new_gameState.board[i].user_color = -1;
             }
             if (state === 0) {

@@ -242,12 +242,12 @@ body {
 
 .pencils {
     position: absolute;
-    left: 5%;
-    top: 5%;
-    width: 90%;
-    height: 90%;
+    left: 15%;
+    top: 15%;
+    width: 70%;
+    height: 70%;
 
-    font-size: 1em;
+    font-size: .8em;
     /* color: #237e2c; */
     vertical-align: top;
 }
@@ -270,7 +270,7 @@ body {
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
 
-    font-size: 1em;
+    font-size: .8em;
     /* color: #25757e; */
     vertical-align: top;
 
@@ -287,7 +287,7 @@ body {
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
 
-    font-size: 1em;
+    font-size: .8em;
     /* color: #237e2c; */
     vertical-align: top;
 }
