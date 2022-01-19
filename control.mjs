@@ -87,7 +87,7 @@ export default function init(app) {
             let user = g_users.get(token);
             let logout_timer = setTimeout(function() {
                 // remove their highlights from the selected map before deleting them
-                for (idx in g_selected) {
+                for (let idx in g_selected) {
                     let user_colors = g_selected[idx];
                     if (user_colors.includes(user.color)) {
                         let new_cols = user_colors.filter((color) => color !== user.color);
